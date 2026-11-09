@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronDown } from "lucide-react";
 
 import ArrowLink from "../components/public/ArrowLink";
-import ProjectCaption, { projectYear } from "../components/public/ProjectCaption";
+import ProjectCaption from "../components/public/ProjectCaption";
 import QuotationCta from "../components/public/QuotationCta";
 import SectionHeading from "../components/public/SectionHeading";
 import VideoShowcase from "../components/public/VideoShowcase";
@@ -12,7 +12,7 @@ import {
   organizationSchema,
 } from "../components/seo/StructuredData";
 import OptimizedImage from "../components/ui/Image";
-import { COMPANY, COMPANY_FACTS } from "../data/company";
+import { COMPANY } from "../data/company";
 import { POOL_PHOTOS } from "../data/poolPhotos";
 import {
   LEAD_SERVICE_GROUP,
@@ -154,11 +154,8 @@ export default function HomePage() {
     ? featured
     : (recent?.projects ?? []);
 
-  const hero = projects[0];
   const galleryLead = projects[1];
   const galleryMinis = projects.slice(2, 4);
-  const heroCover = coverOf(hero);
-  const heroYear = hero ? projectYear(hero) : undefined;
 
   return (
     <>
@@ -212,53 +209,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ── Lead project photograph, captioned from the record ────────────── */}
-      {hero && heroCover && (
-        <>
-          <section aria-label={`Photograph of ${hero.title}`} className="w-full">
-            <OptimizedImage
-              src={heroCover}
-              alt={hero.coverImage?.alt || hero.title}
-              priority
-              sizes="100vw"
-              className="photo h-[240px] bg-ink-100 sm:h-[340px] lg:h-[416px]"
-            />
-          </section>
-
-          <section className="border-b border-ink-200">
-            <div className="container-xl grid gap-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-10">
-              <div className="min-w-0">
-                <Link
-                  to="/projects/$id"
-                  params={{ id: hero.slug || hero._id }}
-                  className="font-display text-[17px] font-bold tracking-[-0.012em] text-ink-900 hover:text-sky-700"
-                >
-                  {hero.title}
-                </Link>
-                <div className="rule-meta mt-1.5">
-                  {hero.location && <span>{hero.location}</span>}
-                  {heroYear && <span>{heroYear}</span>}
-                  <span>{projectCategoryLabel(hero.category)}</span>
-                  {hero.area && <span>{hero.area}</span>}
-                </div>
-              </div>
-
-              <div className="flex items-stretch gap-6">
-                {COMPANY_FACTS.map((fact, index) => (
-                  <div key={fact.label} className="flex items-stretch gap-6">
-                    {index > 0 && <span className="w-px bg-ink-200" aria-hidden="true" />}
-                    <div>
-                      <span className="data-label">{fact.label}</span>
-                      <span className="data-value">{fact.value}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </>
-      )}
 
       {/* ── Company introduction ─────────────────────────────────────────── */}
       <section className="py-16 lg:py-20">
