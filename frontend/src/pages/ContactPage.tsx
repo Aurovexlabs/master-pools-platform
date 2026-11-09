@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import {
   CheckCircle,
-  ChevronRight,
   Clock,
+  Mail,
+  MapPin,
   MessageCircle,
   Phone,
   Send,
@@ -11,36 +11,68 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+
+import PhotoBanner from "../components/public/PhotoBanner";
+import QuotationCta from "../components/public/QuotationCta";
+import { POOL_PHOTOS } from "../data/poolPhotos";
 import { MetaHead } from "../components/seo/MetaHead";
 import {
   StructuredData,
   breadcrumbSchema,
   organizationSchema,
 } from "../components/seo/StructuredData";
+import { COMPANY } from "../data/company";
 import { useSubmitContact } from "../hooks/useApi";
 import type { ContactForm } from "../types";
 
-const fw = (d = 0) => ({
-  initial: { opacity: 0, y: 20 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-40px" },
-  transition: { duration: 0.5, delay: d, ease: [0.22, 1, 0.36, 1] as any },
-});
+const SUBJECTS = [
+  "General enquiry",
+  "Request a quotation",
+  "Pool construction",
+  "Renovation or repairs",
+  "Maintenance contract",
+  "Equipment supply",
+  "Existing project",
+  "Something else",
+];
 
-const INFO = [
+const CHANNELS = [
   {
     icon: Phone,
-    title: "Phone",
-    lines: ["+263 772 562 125", "+263 775 206 774"],
-    sub: "WhatsApp or call Mon–Fri 8am–5pm · Sat 9am–1pm",
-    color: "blue",
+    label: "Sales desk",
+    value: COMPANY.phone,
+    href: COMPANY.phoneHref,
   },
   {
-    icon: Clock,
-    title: "Hours",
-    lines: ["Mon–Fri: 8am – 5pm", "Saturday: 9am – 1pm"],
-    sub: "Closed Sundays & Public Holidays",
-    color: "indigo",
+    icon: MessageCircle,
+    label: "WhatsApp",
+    value: "Message the sales desk",
+    href: COMPANY.whatsappHref,
+    external: true,
+  },
+  {
+    icon: Mail,
+    label: "Email",
+    value: COMPANY.email,
+    href: `mailto:${COMPANY.email}`,
+  },
+];
+
+const NEXT_STEPS = [
+  {
+    step: "01",
+    title: "We reply",
+    body: "The sales desk answers the enquiry and asks for anything missing.",
+  },
+  {
+    step: "02",
+    title: "Site visit",
+    body: "An assessment of access, ground conditions and existing services.",
+  },
+  {
+    step: "03",
+    title: "Quotation",
+    body: "Itemised scope and programme, agreed in writing before work starts.",
   },
 ];
 
@@ -59,575 +91,285 @@ export default function ContactPage() {
       onSuccess: () => {
         setSubmitted(true);
         reset();
-        toast.success("Message sent! We'll reply shortly.");
+        toast.success("Message sent");
       },
-      onError: () => toast.error("Failed to send. Please try again."),
+      onError: () => toast.error("The message could not be sent. Try again."),
     });
   };
 
   return (
     <>
       <MetaHead
-        title="Contact MATERPOOLS AND CONTRUCTION | Get Your Dream Pool Quote"
-        description="Get in touch with our expert team for a free consultation and custom pool quotation."
-        canonical="https://www.masterspools.co.zw/contact"
+        title="Contact MasterPools | Zimbabwe"
+        description="Contact MasterPools about pool construction, renovation, maintenance or equipment anywhere in Zimbabwe. Call +263 772 562 125 or send an enquiry."
+        canonical={`${COMPANY.siteUrl}/contact`}
       />
       <StructuredData schema={organizationSchema} />
       <StructuredData
         schema={breadcrumbSchema([
-          { name: "Home", url: "https://www.masterspools.co.zw/" },
-          { name: "Contact", url: "https://www.masterspools.co.zw/contact" },
+          { name: "Home", url: `${COMPANY.siteUrl}/` },
+          { name: "Contact", url: `${COMPANY.siteUrl}/contact` },
         ])}
       />
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "var(--color-bg)",
-          paddingBottom: "6rem",
-        }}
-      >
-        {/* Header */}
-        <section
-          style={{
-            position: "relative",
-            padding: "5rem 1.5rem 4rem",
-            textAlign: "center",
-            overflow: "hidden",
-            background: "#fff",
-            borderBottom: "1px solid var(--color-border)",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background:
-                "radial-gradient(circle at 50% -20%, var(--color-primary-50) 0%, transparent 70%)",
-              opacity: 0.6,
-            }}
-          />
-          <div
-            style={{
-              maxWidth: "42rem",
-              margin: "0 auto",
-              position: "relative",
-            }}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <p className="eyebrow" style={{ marginBottom: "0.75rem" }}>
-                Reach Out
-              </p>
-              <h1
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "clamp(2.25rem,6vw,3.5rem)",
-                  fontWeight: 800,
-                  color: "var(--color-text)",
-                  marginBottom: "1rem",
-                  letterSpacing: "-0.03em",
-                }}
-              >
-                Let's <span className="gradient-text">Talk Pools</span>
-              </h1>
-              <p
-                style={{
-                  color: "var(--color-text-secondary)",
-                  fontSize: "1.125rem",
-                  lineHeight: 1.7,
-                  maxWidth: "32rem",
-                  margin: "0 auto",
-                }}
-              >
-                Have a question about a project? Want a bespoke quote? Our
-                friendly team of experts is ready to help.
-              </p>
-            </motion.div>
-          </div>
-        </section>
 
-        <div
-          style={{
-            maxWidth: "72rem",
-            margin: "0 auto",
-            padding: "3rem 1.5rem 0",
-            display: "grid",
-            gridTemplateColumns: "1fr",
-            gap: "2.5rem",
-          }}
-          className="lg:grid-cols-5"
-        >
-          {/* Info sidebar */}
-          <motion.div
-            {...fw(0.1)}
-            style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
-            className="lg:col-span-2"
-          >
-            {INFO.map(({ icon: Icon, title, lines, sub, color }) => (
-              <div
-                key={title}
-                style={{
-                  display: "flex",
-                  gap: "1.25rem",
-                  padding: "1.5rem",
-                  background: "#fff",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "16px",
-                  boxShadow: "var(--shadow-xs)",
-                }}
-              >
+      <PhotoBanner
+        image={POOL_PHOTOS.banner.url}
+        title="Contact MasterPools"
+        align="center 60%"
+        intro="Tell us about the site and the work required. Enquiries are answered by the sales desk in Harare."
+      />
+
+      {/* ── Direct channels ──────────────────────────────────────────────── */}
+      <section className="border-b border-ink-200 bg-surface">
+        <div className="container-xl grid gap-x-10 gap-y-6 py-7 sm:grid-cols-3">
+          {CHANNELS.map(({ icon: Icon, label, value, href, external }) => (
+            <a
+              key={label}
+              href={href}
+              {...(external
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
+              className="group flex items-start gap-3"
+            >
+              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-ink-200 bg-white text-sky-600">
+                <Icon size={15} strokeWidth={2} aria-hidden="true" />
+              </span>
+              <span>
+                <span className="data-label">{label}</span>
+                <span className="mt-1 block text-[14px] font-semibold text-ink-900 group-hover:text-sky-700">
+                  {value}
+                </span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <div className="container-xl py-10 lg:py-14">
+        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-14">
+          {/* Left: what happens, hours, centres */}
+          <div>
+            <h2 className="mb-5 font-display text-[24px] font-bold tracking-[-0.024em] text-ink-900 sm:text-[28px]">
+              What happens next
+            </h2>
+            <div>
+              {NEXT_STEPS.map((item) => (
                 <div
-                  style={{
-                    width: "3rem",
-                    height: "3rem",
-                    borderRadius: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                    background:
-                      color === "blue"
-                        ? "var(--color-primary-50)"
-                        : "var(--color-secondary-50)",
-                    border: `1px solid ${color === "blue" ? "var(--color-primary-100)" : "var(--color-secondary-100)"}`,
-                  }}
+                  key={item.step}
+                  className="grid grid-cols-[30px_minmax(0,1fr)] gap-3 border-t border-ink-200 py-4"
                 >
-                  <Icon
-                    style={{
-                      width: "1.25rem",
-                      height: "1.25rem",
-                      color:
-                        color === "blue"
-                          ? "var(--color-primary-700)"
-                          : "var(--color-secondary-600)",
-                    }}
-                  />
-                </div>
-                <div>
-                  <h4
-                    style={{
-                      fontWeight: 700,
-                      color: "var(--color-text)",
-                      fontSize: "1rem",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    {title}
-                  </h4>
-                  {lines.map((l) => (
-                    <p
-                      key={l}
-                      style={{
-                        color: "var(--color-text-secondary)",
-                        fontSize: "0.9375rem",
-                        margin: "0.25rem 0",
-                      }}
-                    >
-                      {l}
+                  <span className="pt-0.5 font-display text-[13px] font-bold tabular-nums text-sky-700">
+                    {item.step}
+                  </span>
+                  <div>
+                    <h3 className="mb-1 font-display text-[15px] font-bold text-ink-900">
+                      {item.title}
+                    </h3>
+                    <p className="max-w-[330px] text-[13.5px] leading-relaxed text-ink-600">
+                      {item.body}
                     </p>
-                  ))}
-                  <p
-                    style={{
-                      color: "var(--color-text-tertiary)",
-                      fontSize: "0.75rem",
-                      fontWeight: 500,
-                      marginTop: "0.5rem",
-                    }}
-                  >
-                    {sub}
-                  </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            {/* Live chat prompt */}
-            <div
-              style={{
-                background: "var(--color-primary-900)",
-                border: "1px solid var(--color-primary-800)",
-                borderRadius: "16px",
-                padding: "1.5rem",
-                display: "flex",
-                gap: "1rem",
-                alignItems: "flex-start",
-                color: "#fff",
-                boxShadow: "var(--shadow-primary)",
-              }}
-            >
-              <div
-                style={{
-                  width: "2.5rem",
-                  height: "2.5rem",
-                  borderRadius: "10px",
-                  background: "rgba(255,255,255,0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <MessageCircle
-                  style={{ width: "1.25rem", height: "1.25rem", color: "#fff" }}
-                />
+            <div className="mt-8 grid gap-6 sm:grid-cols-2">
+              <div>
+                <span className="data-label inline-flex items-center gap-1.5">
+                  <Clock size={12} aria-hidden="true" /> Office hours
+                </span>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-700">
+                  Monday to Friday, 08:00 – 17:00
+                  <br />
+                  Saturday, 09:00 – 13:00
+                </p>
               </div>
               <div>
-                <p
-                  style={{
-                    color: "#fff",
-                    fontWeight: 700,
-                    fontSize: "1rem",
-                    marginBottom: "0.375rem",
-                  }}
-                >
-                  Prefer live chat?
+                <span className="data-label inline-flex items-center gap-1.5">
+                  <MapPin size={12} aria-hidden="true" /> Operating in
+                </span>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-700">
+                  {COMPANY.coverage}. Run from {COMPANY.basesLabel}.
                 </p>
-                <p
-                  style={{
-                    color: "rgba(255,255,255,0.7)",
-                    fontSize: "0.875rem",
-                    lineHeight: 1.6,
-                    margin: 0,
-                  }}
-                >
-                  Sign in to speak directly with our engineering team via the
-                  dashboard chat.
-                </p>
-                <Link
-                  to="/login"
-                  style={{
-                    color: "#fff",
-                    fontSize: "0.8125rem",
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.25rem",
-                    marginTop: "0.75rem",
-                    textDecoration: "none",
-                  }}
-                >
-                  Sign In Now{" "}
-                  <ChevronRight
-                    style={{ width: "0.875rem", height: "0.875rem" }}
-                  />
-                </Link>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Form panel */}
-          <motion.div
-            {...fw(0.2)}
-            style={{
-              background: "#fff",
-              border: "1px solid var(--color-border)",
-              borderRadius: "20px",
-              padding: "2.5rem",
-              boxShadow: "var(--shadow-md)",
-            }}
-            className="lg:col-span-3"
-          >
+          {/* Right: enquiry form */}
+          <div className="rounded-xl border border-ink-200 bg-white p-6 sm:p-8">
             {submitted ? (
-              <div style={{ textAlign: "center", padding: "4rem 1.5rem" }}>
-                <div
-                  style={{
-                    width: "5.5rem",
-                    height: "5.5rem",
-                    borderRadius: "50%",
-                    background: "var(--color-accent-50)",
-                    border: "2px solid var(--color-accent-100)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto 1.5rem",
-                  }}
-                >
+              <div className="flex flex-col items-center py-12 text-center">
+                <span className="mb-4 grid h-14 w-14 place-items-center rounded-full border border-sky-100 bg-sky-50">
                   <CheckCircle
-                    style={{
-                      width: "2.75rem",
-                      height: "2.75rem",
-                      color: "var(--color-accent-600)",
-                    }}
+                    size={26}
+                    strokeWidth={1.8}
+                    className="text-sky-600"
+                    aria-hidden="true"
                   />
-                </div>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "2rem",
-                    fontWeight: 800,
-                    color: "var(--color-text)",
-                    marginBottom: "0.75rem",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Message Sent!
-                </h3>
-                <p
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    fontSize: "1.0625rem",
-                    marginBottom: "2.5rem",
-                    lineHeight: 1.75,
-                    maxWidth: "24rem",
-                    margin: "0 auto 2.5rem",
-                  }}
-                >
-                  Thank you for reaching out. A copy has been sent to your
-                  email, and our team will get back to you within 24 hours.
+                </span>
+                <h2 className="font-display text-[22px] font-bold tracking-[-0.02em] text-ink-900">
+                  Message sent
+                </h2>
+                <p className="mt-2 mb-6 max-w-[340px] text-[13.5px] leading-relaxed text-ink-600">
+                  The sales desk has your enquiry and will reply to the address
+                  you gave.
                 </p>
                 <button
+                  type="button"
                   onClick={() => setSubmitted(false)}
-                  className="btn btn-secondary btn-lg"
+                  className="btn btn-secondary btn-md"
                 >
-                  Send Another Message
+                  Send another message
                 </button>
               </div>
             ) : (
               <>
-                <div style={{ marginBottom: "2rem" }}>
-                  <h2
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontSize: "1.75rem",
-                      fontWeight: 800,
-                      color: "var(--color-text)",
-                      marginBottom: "0.5rem",
-                      letterSpacing: "-0.02em",
-                    }}
-                  >
-                    Send Us a Message
-                  </h2>
-                  <p
-                    style={{
-                      color: "var(--color-text-secondary)",
-                      fontSize: "0.9375rem",
-                    }}
-                  >
-                    Fields marked with{" "}
-                    <span style={{ color: "var(--color-danger)" }}>*</span> are
-                    required.
-                  </p>
-                </div>
+                <h2 className="mb-1 font-display text-[22px] font-bold tracking-[-0.02em] text-ink-900">
+                  Send an enquiry
+                </h2>
+                <p className="mb-6 text-[13.5px] text-ink-600">
+                  Fields marked with an asterisk are required.
+                </p>
 
                 <form
                   onSubmit={handleSubmit(onSubmit)}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1.25rem",
-                  }}
+                  className="flex flex-col gap-5"
                 >
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr",
-                      gap: "1.25rem",
-                    }}
-                    className="sm:grid-cols-2"
-                  >
+                  <div className="grid gap-5 sm:grid-cols-2">
                     <div>
-                      <label className="label">
-                        Full Name{" "}
-                        <span style={{ color: "var(--color-danger)" }}>*</span>
+                      <label className="label" htmlFor="name">
+                        Full name *
                       </label>
                       <input
+                        id="name"
                         {...register("name", { required: "Name required" })}
                         className="input"
-                        placeholder="John Smith"
-                        style={
-                          errors.name
-                            ? { borderColor: "var(--color-danger)" }
-                            : {}
-                        }
+                        placeholder="First and last name"
+                        aria-invalid={Boolean(errors.name)}
                       />
                       {errors.name && (
-                        <p
-                          style={{
-                            color: "var(--color-danger)",
-                            fontSize: "0.75rem",
-                            marginTop: "0.375rem",
-                          }}
-                        >
-                          {errors.name.message}
-                        </p>
+                        <p className="field-error">{errors.name.message}</p>
                       )}
                     </div>
                     <div>
-                      <label className="label">
-                        Email Address{" "}
-                        <span style={{ color: "var(--color-danger)" }}>*</span>
+                      <label className="label" htmlFor="email">
+                        Email *
                       </label>
                       <input
+                        id="email"
                         type="email"
                         {...register("email", {
                           required: "Email required",
                           pattern: {
                             value: /^\S+@\S+$/i,
-                            message: "Invalid email",
+                            message: "Enter a valid email",
                           },
                         })}
                         className="input"
-                        placeholder="john@example.com"
-                        style={
-                          errors.email
-                            ? { borderColor: "var(--color-danger)" }
-                            : {}
-                        }
+                        placeholder="you@example.com"
+                        aria-invalid={Boolean(errors.email)}
                       />
                       {errors.email && (
-                        <p
-                          style={{
-                            color: "var(--color-danger)",
-                            fontSize: "0.75rem",
-                            marginTop: "0.375rem",
-                          }}
-                        >
-                          {errors.email.message}
-                        </p>
+                        <p className="field-error">{errors.email.message}</p>
                       )}
                     </div>
                   </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr",
-                      gap: "1.25rem",
-                    }}
-                    className="sm:grid-cols-2"
-                  >
+
+                  <div className="grid gap-5 sm:grid-cols-2">
                     <div>
-                      <label className="label">
-                        Phone{" "}
-                        <span
-                          style={{
-                            color: "var(--color-text-tertiary)",
-                            fontWeight: 400,
-                          }}
-                        >
-                          (optional)
-                        </span>
+                      <label className="label" htmlFor="phone">
+                        Phone <span className="font-normal text-ink-400">(optional)</span>
                       </label>
                       <input
+                        id="phone"
                         {...register("phone")}
                         className="input"
                         placeholder="+263 77 000 0000"
                       />
                     </div>
                     <div>
-                      <label className="label">
-                        Subject{" "}
-                        <span style={{ color: "var(--color-danger)" }}>*</span>
+                      <label className="label" htmlFor="subject">
+                        Subject *
                       </label>
                       <select
+                        id="subject"
                         {...register("subject", {
-                          required: "Subject required",
+                          required: "Choose a subject",
                         })}
                         className="select"
-                        style={
-                          errors.subject
-                            ? { borderColor: "var(--color-danger)" }
-                            : {}
-                        }
+                        aria-invalid={Boolean(errors.subject)}
                       >
-                        <option value="">Select subject</option>
-                        {[
-                          "General Inquiry",
-                          "Request a Quote",
-                          "Ongoing Project",
-                          "Pool Maintenance",
-                          "Partnership",
-                          "Other",
-                        ].map((s) => (
-                          <option key={s} value={s}>
-                            {s}
+                        <option value="">Select a subject</option>
+                        {SUBJECTS.map((subject) => (
+                          <option key={subject} value={subject}>
+                            {subject}
                           </option>
                         ))}
                       </select>
                       {errors.subject && (
-                        <p
-                          style={{
-                            color: "var(--color-danger)",
-                            fontSize: "0.75rem",
-                            marginTop: "0.375rem",
-                          }}
-                        >
-                          {errors.subject.message}
-                        </p>
+                        <p className="field-error">{errors.subject.message}</p>
                       )}
                     </div>
                   </div>
+
                   <div>
-                    <label className="label">
-                      Message{" "}
-                      <span style={{ color: "var(--color-danger)" }}>*</span>
+                    <label className="label" htmlFor="message">
+                      Message *
                     </label>
                     <textarea
+                      id="message"
+                      rows={5}
                       {...register("message", {
                         required: "Message required",
                         minLength: {
                           value: 20,
-                          message: "At least 20 characters",
+                          message: "Please give at least 20 characters",
                         },
                       })}
-                      rows={5}
                       className="textarea"
-                      placeholder="Tell us about your project, questions, or how we can help…"
-                      style={
-                        errors.message
-                          ? { borderColor: "var(--color-danger)" }
-                          : {}
-                      }
+                      placeholder="The site address, the work required, and when you would like it done."
+                      aria-invalid={Boolean(errors.message)}
                     />
                     {errors.message && (
-                      <p
-                        style={{
-                          color: "var(--color-danger)",
-                          fontSize: "0.75rem",
-                          marginTop: "0.375rem",
-                        }}
-                      >
-                        {errors.message.message}
-                      </p>
+                      <p className="field-error">{errors.message.message}</p>
                     )}
                   </div>
-                  <button
-                    type="submit"
-                    disabled={isPending}
-                    className="btn btn-primary btn-lg"
-                    style={{ justifyContent: "center", marginTop: "0.5rem" }}
-                  >
-                    {isPending ? (
-                      <>
-                        <span
-                          style={{
-                            width: "1.125rem",
-                            height: "1.125rem",
-                            border: "2px solid rgba(255,255,255,0.3)",
-                            borderTop: "2px solid #fff",
-                            borderRadius: "50%",
-                            animation: "spin 0.8s linear infinite",
-                            display: "inline-block",
-                          }}
-                        />{" "}
-                        Sending…
-                      </>
-                    ) : (
-                      <>
-                        <Send
-                          style={{ width: "1.125rem", height: "1.125rem" }}
-                        />{" "}
-                        Send Message
-                      </>
-                    )}
-                  </button>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={isPending}
+                      className="btn btn-primary btn-lg"
+                    >
+                      <Send size={16} strokeWidth={2} aria-hidden="true" />
+                      {isPending ? "Sending…" : "Send message"}
+                    </button>
+                    <a
+                      href={COMPANY.whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="textlink"
+                    >
+                      <MessageCircle size={14} aria-hidden="true" />
+                      Or message on WhatsApp
+                    </a>
+                  </div>
                 </form>
               </>
             )}
-          </motion.div>
+          </div>
         </div>
+
+        <p className="mt-10 border-t border-ink-200 pt-5 text-[13.5px] text-ink-600">
+          Looking for a written quote instead?{" "}
+          <Link to="/quotation" className="font-semibold text-sky-700 hover:underline">
+            Request a quotation
+          </Link>{" "}
+          — it asks for the pool type, dimensions and site details up front.
+        </p>
       </div>
+
+      <QuotationCta />
     </>
   );
 }

@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyOtpRouteImport } from './routes/verify-otp'
 import { Route as TermsOfServiceRouteImport } from './routes/terms-of-service'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as QuotationRouteImport } from './routes/quotation'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as MarketRouteImport } from './routes/market'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LatestRouteImport } from './routes/latest'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -25,16 +27,23 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as MarketIndexRouteImport } from './routes/market.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as ProjectsIdRouteImport } from './routes/projects.$id'
+import { Route as MarketQuoteRouteImport } from './routes/market.quote'
+import { Route as MarketSlugRouteImport } from './routes/market.$slug'
 import { Route as LatestSlugRouteImport } from './routes/latest.$slug'
 import { Route as AdminVideosRouteImport } from './routes/admin/videos'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminReviewsRouteImport } from './routes/admin/reviews'
 import { Route as AdminQuotationsRouteImport } from './routes/admin/quotations'
 import { Route as AdminProjectsRouteImport } from './routes/admin/projects'
+import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminNewsletterRouteImport } from './routes/admin/newsletter'
+import { Route as AdminMarketQuotesRouteImport } from './routes/admin/market-quotes'
 import { Route as AdminContactsRouteImport } from './routes/admin/contacts'
 import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as AdminBlogsRouteImport } from './routes/admin/blogs'
@@ -47,6 +56,11 @@ const VerifyOtpRoute = VerifyOtpRouteImport.update({
 const TermsOfServiceRoute = TermsOfServiceRouteImport.update({
   id: '/terms-of-service',
   path: '/terms-of-service',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -72,6 +86,11 @@ const ProjectsRoute = ProjectsRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketRoute = MarketRouteImport.update({
+  id: '/market',
+  path: '/market',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -119,20 +138,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesIndexRoute = ServicesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ServicesRoute,
+} as any)
 const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProjectsRoute,
+} as any)
+const MarketIndexRoute = MarketIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MarketRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const ServicesSlugRoute = ServicesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ServicesRoute,
+} as any)
 const ProjectsIdRoute = ProjectsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ProjectsRoute,
+} as any)
+const MarketQuoteRoute = MarketQuoteRouteImport.update({
+  id: '/quote',
+  path: '/quote',
+  getParentRoute: () => MarketRoute,
+} as any)
+const MarketSlugRoute = MarketSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => MarketRoute,
 } as any)
 const LatestSlugRoute = LatestSlugRouteImport.update({
   id: '/$slug',
@@ -164,9 +208,19 @@ const AdminProjectsRoute = AdminProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminProductsRoute = AdminProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminNewsletterRoute = AdminNewsletterRouteImport.update({
   id: '/newsletter',
   path: '/newsletter',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMarketQuotesRoute = AdminMarketQuotesRouteImport.update({
+  id: '/market-quotes',
+  path: '/market-quotes',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminContactsRoute = AdminContactsRouteImport.update({
@@ -195,26 +249,35 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/latest': typeof LatestRouteWithChildren
   '/login': typeof LoginRoute
+  '/market': typeof MarketRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/quotation': typeof QuotationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRouteWithChildren
   '/terms-of-service': typeof TermsOfServiceRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/admin/blogs': typeof AdminBlogsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/contacts': typeof AdminContactsRoute
+  '/admin/market-quotes': typeof AdminMarketQuotesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/products': typeof AdminProductsRoute
   '/admin/projects': typeof AdminProjectsRoute
   '/admin/quotations': typeof AdminQuotationsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/videos': typeof AdminVideosRoute
   '/latest/$slug': typeof LatestSlugRoute
+  '/market/$slug': typeof MarketSlugRoute
+  '/market/quote': typeof MarketQuoteRoute
   '/projects/$id': typeof ProjectsIdRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/market/': typeof MarketIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/services/': typeof ServicesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -234,16 +297,23 @@ export interface FileRoutesByTo {
   '/admin/blogs': typeof AdminBlogsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/contacts': typeof AdminContactsRoute
+  '/admin/market-quotes': typeof AdminMarketQuotesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/products': typeof AdminProductsRoute
   '/admin/projects': typeof AdminProjectsRoute
   '/admin/quotations': typeof AdminQuotationsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/videos': typeof AdminVideosRoute
   '/latest/$slug': typeof LatestSlugRoute
+  '/market/$slug': typeof MarketSlugRoute
+  '/market/quote': typeof MarketQuoteRoute
   '/projects/$id': typeof ProjectsIdRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/market': typeof MarketIndexRoute
   '/projects': typeof ProjectsIndexRoute
+  '/services': typeof ServicesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -256,26 +326,35 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/latest': typeof LatestRouteWithChildren
   '/login': typeof LoginRoute
+  '/market': typeof MarketRouteWithChildren
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/projects': typeof ProjectsRouteWithChildren
   '/quotation': typeof QuotationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRouteWithChildren
   '/terms-of-service': typeof TermsOfServiceRoute
   '/verify-otp': typeof VerifyOtpRoute
   '/admin/blogs': typeof AdminBlogsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/contacts': typeof AdminContactsRoute
+  '/admin/market-quotes': typeof AdminMarketQuotesRoute
   '/admin/newsletter': typeof AdminNewsletterRoute
+  '/admin/products': typeof AdminProductsRoute
   '/admin/projects': typeof AdminProjectsRoute
   '/admin/quotations': typeof AdminQuotationsRoute
   '/admin/reviews': typeof AdminReviewsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/videos': typeof AdminVideosRoute
   '/latest/$slug': typeof LatestSlugRoute
+  '/market/$slug': typeof MarketSlugRoute
+  '/market/quote': typeof MarketQuoteRoute
   '/projects/$id': typeof ProjectsIdRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/market/': typeof MarketIndexRoute
   '/projects/': typeof ProjectsIndexRoute
+  '/services/': typeof ServicesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -289,26 +368,35 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/latest'
     | '/login'
+    | '/market'
     | '/privacy-policy'
     | '/projects'
     | '/quotation'
     | '/register'
     | '/reset-password'
+    | '/services'
     | '/terms-of-service'
     | '/verify-otp'
     | '/admin/blogs'
     | '/admin/chat'
     | '/admin/contacts'
+    | '/admin/market-quotes'
     | '/admin/newsletter'
+    | '/admin/products'
     | '/admin/projects'
     | '/admin/quotations'
     | '/admin/reviews'
     | '/admin/users'
     | '/admin/videos'
     | '/latest/$slug'
+    | '/market/$slug'
+    | '/market/quote'
     | '/projects/$id'
+    | '/services/$slug'
     | '/admin/'
+    | '/market/'
     | '/projects/'
+    | '/services/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -328,16 +416,23 @@ export interface FileRouteTypes {
     | '/admin/blogs'
     | '/admin/chat'
     | '/admin/contacts'
+    | '/admin/market-quotes'
     | '/admin/newsletter'
+    | '/admin/products'
     | '/admin/projects'
     | '/admin/quotations'
     | '/admin/reviews'
     | '/admin/users'
     | '/admin/videos'
     | '/latest/$slug'
+    | '/market/$slug'
+    | '/market/quote'
     | '/projects/$id'
+    | '/services/$slug'
     | '/admin'
+    | '/market'
     | '/projects'
+    | '/services'
   id:
     | '__root__'
     | '/'
@@ -349,26 +444,35 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/latest'
     | '/login'
+    | '/market'
     | '/privacy-policy'
     | '/projects'
     | '/quotation'
     | '/register'
     | '/reset-password'
+    | '/services'
     | '/terms-of-service'
     | '/verify-otp'
     | '/admin/blogs'
     | '/admin/chat'
     | '/admin/contacts'
+    | '/admin/market-quotes'
     | '/admin/newsletter'
+    | '/admin/products'
     | '/admin/projects'
     | '/admin/quotations'
     | '/admin/reviews'
     | '/admin/users'
     | '/admin/videos'
     | '/latest/$slug'
+    | '/market/$slug'
+    | '/market/quote'
     | '/projects/$id'
+    | '/services/$slug'
     | '/admin/'
+    | '/market/'
     | '/projects/'
+    | '/services/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -381,11 +485,13 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LatestRoute: typeof LatestRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MarketRoute: typeof MarketRouteWithChildren
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ProjectsRoute: typeof ProjectsRouteWithChildren
   QuotationRoute: typeof QuotationRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ServicesRoute: typeof ServicesRouteWithChildren
   TermsOfServiceRoute: typeof TermsOfServiceRoute
   VerifyOtpRoute: typeof VerifyOtpRoute
 }
@@ -404,6 +510,13 @@ declare module '@tanstack/react-router' {
       path: '/terms-of-service'
       fullPath: '/terms-of-service'
       preLoaderRoute: typeof TermsOfServiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -439,6 +552,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/market': {
+      id: '/market'
+      path: '/market'
+      fullPath: '/market'
+      preLoaderRoute: typeof MarketRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -504,12 +624,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/services/': {
+      id: '/services/'
+      path: '/'
+      fullPath: '/services/'
+      preLoaderRoute: typeof ServicesIndexRouteImport
+      parentRoute: typeof ServicesRoute
+    }
     '/projects/': {
       id: '/projects/'
       path: '/'
       fullPath: '/projects/'
       preLoaderRoute: typeof ProjectsIndexRouteImport
       parentRoute: typeof ProjectsRoute
+    }
+    '/market/': {
+      id: '/market/'
+      path: '/'
+      fullPath: '/market/'
+      preLoaderRoute: typeof MarketIndexRouteImport
+      parentRoute: typeof MarketRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -518,12 +652,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/services/$slug': {
+      id: '/services/$slug'
+      path: '/$slug'
+      fullPath: '/services/$slug'
+      preLoaderRoute: typeof ServicesSlugRouteImport
+      parentRoute: typeof ServicesRoute
+    }
     '/projects/$id': {
       id: '/projects/$id'
       path: '/$id'
       fullPath: '/projects/$id'
       preLoaderRoute: typeof ProjectsIdRouteImport
       parentRoute: typeof ProjectsRoute
+    }
+    '/market/quote': {
+      id: '/market/quote'
+      path: '/quote'
+      fullPath: '/market/quote'
+      preLoaderRoute: typeof MarketQuoteRouteImport
+      parentRoute: typeof MarketRoute
+    }
+    '/market/$slug': {
+      id: '/market/$slug'
+      path: '/$slug'
+      fullPath: '/market/$slug'
+      preLoaderRoute: typeof MarketSlugRouteImport
+      parentRoute: typeof MarketRoute
     }
     '/latest/$slug': {
       id: '/latest/$slug'
@@ -567,11 +722,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProjectsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/products': {
+      id: '/admin/products'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/newsletter': {
       id: '/admin/newsletter'
       path: '/newsletter'
       fullPath: '/admin/newsletter'
       preLoaderRoute: typeof AdminNewsletterRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/market-quotes': {
+      id: '/admin/market-quotes'
+      path: '/market-quotes'
+      fullPath: '/admin/market-quotes'
+      preLoaderRoute: typeof AdminMarketQuotesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/contacts': {
@@ -602,7 +771,9 @@ interface AdminRouteChildren {
   AdminBlogsRoute: typeof AdminBlogsRoute
   AdminChatRoute: typeof AdminChatRoute
   AdminContactsRoute: typeof AdminContactsRoute
+  AdminMarketQuotesRoute: typeof AdminMarketQuotesRoute
   AdminNewsletterRoute: typeof AdminNewsletterRoute
+  AdminProductsRoute: typeof AdminProductsRoute
   AdminProjectsRoute: typeof AdminProjectsRoute
   AdminQuotationsRoute: typeof AdminQuotationsRoute
   AdminReviewsRoute: typeof AdminReviewsRoute
@@ -615,7 +786,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBlogsRoute: AdminBlogsRoute,
   AdminChatRoute: AdminChatRoute,
   AdminContactsRoute: AdminContactsRoute,
+  AdminMarketQuotesRoute: AdminMarketQuotesRoute,
   AdminNewsletterRoute: AdminNewsletterRoute,
+  AdminProductsRoute: AdminProductsRoute,
   AdminProjectsRoute: AdminProjectsRoute,
   AdminQuotationsRoute: AdminQuotationsRoute,
   AdminReviewsRoute: AdminReviewsRoute,
@@ -637,6 +810,21 @@ const LatestRouteChildren: LatestRouteChildren = {
 const LatestRouteWithChildren =
   LatestRoute._addFileChildren(LatestRouteChildren)
 
+interface MarketRouteChildren {
+  MarketSlugRoute: typeof MarketSlugRoute
+  MarketQuoteRoute: typeof MarketQuoteRoute
+  MarketIndexRoute: typeof MarketIndexRoute
+}
+
+const MarketRouteChildren: MarketRouteChildren = {
+  MarketSlugRoute: MarketSlugRoute,
+  MarketQuoteRoute: MarketQuoteRoute,
+  MarketIndexRoute: MarketIndexRoute,
+}
+
+const MarketRouteWithChildren =
+  MarketRoute._addFileChildren(MarketRouteChildren)
+
 interface ProjectsRouteChildren {
   ProjectsIdRoute: typeof ProjectsIdRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
@@ -651,6 +839,20 @@ const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
   ProjectsRouteChildren,
 )
 
+interface ServicesRouteChildren {
+  ServicesSlugRoute: typeof ServicesSlugRoute
+  ServicesIndexRoute: typeof ServicesIndexRoute
+}
+
+const ServicesRouteChildren: ServicesRouteChildren = {
+  ServicesSlugRoute: ServicesSlugRoute,
+  ServicesIndexRoute: ServicesIndexRoute,
+}
+
+const ServicesRouteWithChildren = ServicesRoute._addFileChildren(
+  ServicesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -661,11 +863,13 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LatestRoute: LatestRouteWithChildren,
   LoginRoute: LoginRoute,
+  MarketRoute: MarketRouteWithChildren,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   ProjectsRoute: ProjectsRouteWithChildren,
   QuotationRoute: QuotationRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ServicesRoute: ServicesRouteWithChildren,
   TermsOfServiceRoute: TermsOfServiceRoute,
   VerifyOtpRoute: VerifyOtpRoute,
 }

@@ -1,15 +1,59 @@
 import { Conversation } from "../models/Message.model.js";
 import Quotation from "../models/Quotation.model.js";
 import { sendFromPlatform } from "../utils/email.service.js";
+import { escapeRegex, pick } from "../utils/safe.js";
 import { createNotification } from "./notification.controller.js";
 
 export const createQuotation = async (req, res) => {
+  // Whitelisted fields only. A customer must not be able to set status,
+  // quotedAmount, quotedBy, quotedAt or any other administrative field by
+  // posting it in the body.
+  const payload = pick(req.body, [
+    "poolType",
+    "poolShape",
+    "dimensions",
+    "features",
+    "location",
+    "budget",
+    "timeline",
+    "additionalNotes",
+    "attachments",
+  ]);
+
+  if (
+    typeof payload.poolType !== "string" ||
+    typeof payload.poolShape !== "string"
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Pool type and pool shape are required" });
+  }
+  if (
+    payload.additionalNotes !== undefined &&
+    typeof payload.additionalNotes !== "string"
+  ) {
+    return res.status(400).json({ message: "Notes must be text" });
+  }
+
+  if (Array.isArray(payload.attachments)) {
+    payload.attachments = payload.attachments
+      .filter((file) => file && typeof file.url === "string")
+      .slice(0, 10)
+      .map((file) => ({
+        url: file.url,
+        fileId: typeof file.fileId === "string" ? file.fileId : "",
+        name: typeof file.name === "string" ? file.name : "Attachment",
+      }));
+  } else {
+    delete payload.attachments;
+  }
+
   const conversation = await Conversation.create({
     user: req.user._id,
-    subject: `Quotation — ${req.body.poolType} Pool`,
+    subject: `Quotation — ${payload.poolType} Pool`,
   });
   const quotation = await Quotation.create({
-    ...req.body,
+    ...payload,
     user: req.user._id,
     conversationId: conversation._id,
   });
@@ -48,11 +92,13 @@ export const adminGetQuotations = async (req, res) => {
   const { page = 1, limit = 20, status, search } = req.query;
   const filter = {};
   if (status) filter.status = status;
-  if (search)
+  if (search) {
+    const term = escapeRegex(search);
     filter.$or = [
-      { referenceNumber: { $regex: search, $options: "i" } },
-      { poolType: { $regex: search, $options: "i" } },
+      { referenceNumber: { $regex: term, $options: "i" } },
+      { poolType: { $regex: term, $options: "i" } },
     ];
+  }
   const total = await Quotation.countDocuments(filter);
   const quotations = await Quotation.find(filter)
     .sort("-createdAt")

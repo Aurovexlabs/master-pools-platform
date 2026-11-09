@@ -68,10 +68,8 @@ export default function LoginPage() {
       {/* Left panel — brand */}
       <div
         style={{
-          display: "none",
           flex: 1,
-          background:
-            "linear-gradient(135deg, var(--color-primary-950) 0%, var(--color-primary-900) 50%, var(--color-primary-800) 100%)",
+          background: "var(--color-sky-900)",
           flexDirection: "column",
           justifyContent: "center",
           padding: "4rem 3rem",

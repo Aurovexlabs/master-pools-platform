@@ -21,8 +21,10 @@ const userSchema = new mongoose.Schema(
 
 // OTP and password reset fields
 userSchema.add({
+  // Stored as a SHA-256 hash, never the six digits themselves.
   otp: { type: String },
   otpExpires: { type: Date },
+  otpAttempts: { type: Number, default: 0 },
   resetToken: { type: String },
   resetExpires: { type: Date },
 });
@@ -41,6 +43,7 @@ userSchema.methods.toJSON = function () {
   delete obj.password;
   delete obj.otp;
   delete obj.otpExpires;
+  delete obj.otpAttempts;
   delete obj.resetToken;
   delete obj.resetExpires;
   return obj;

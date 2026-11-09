@@ -1,7 +1,12 @@
 import axios, { type AxiosError } from "axios";
 import toast from "react-hot-toast";
 
-const env = (import.meta as any)?.env ?? {};
+/**
+ * `import.meta.env` must appear literally — Vite only substitutes that exact
+ * token at build time. Writing `(import.meta as any).env` compiles to a runtime
+ * lookup that is always empty, which silently disables every VITE_* variable.
+ */
+const env = import.meta.env as Record<string, string | undefined>;
 const defaultProductionApiBase =
   "https://master-pools-platform.onrender.com/api";
 

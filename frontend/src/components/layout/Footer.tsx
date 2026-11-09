@@ -1,504 +1,253 @@
-import {
-  Facebook,
-  Instagram,
-  Linkedin,
-  MessageCircle,
-  Phone,
-  Twitter,
-} from "lucide-react";
-
 import { Link } from "@tanstack/react-router";
+import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+
+import { COMPANY } from "../../data/company";
+import { SERVICE_GROUPS } from "../../data/services";
 import NewsletterSignup from "../ui/NewsletterSignup";
+
+const SHOP_LINKS = [
+  { label: "Pumps", category: "pumps" },
+  { label: "Filtration", category: "filtration" },
+  { label: "Heat pumps", category: "heating" },
+  { label: "Chemicals", category: "chemicals" },
+  { label: "Covers", category: "covers" },
+];
+
+const COMPANY_LINKS = [
+  { to: "/projects", label: "Projects" },
+  { to: "/latest", label: "Latest" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
+] as const;
 
 export default function Footer() {
   const year = new Date().getFullYear();
-  const yearsExp = year - 2014;
 
   return (
-    <footer
-      style={{
-        background: "var(--color-bg)",
-        borderTop: "1px solid var(--color-border)",
-        position: "relative",
-      }}
-    >
-      {/* Top accent line */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "60%",
-          height: "2px",
-          background:
-            "linear-gradient(90deg, transparent, var(--color-primary-200), var(--color-secondary-200), transparent)",
-        }}
-      />
+    <footer className="border-t border-ink-200 bg-white">
+      {/* Contact strip */}
+      <div className="border-b border-ink-200 bg-surface">
+        <div className="container-xl grid gap-x-10 gap-y-6 py-7 sm:grid-cols-3">
+          <a href={COMPANY.phoneHref} className="group flex items-start gap-3">
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-ink-200 bg-white text-sky-600">
+              <Phone size={15} strokeWidth={2} aria-hidden="true" />
+            </span>
+            <span>
+              <span className="data-label">Sales desk</span>
+              <span className="mt-1 block text-[14px] font-semibold text-ink-900 group-hover:text-sky-700">
+                {COMPANY.phone}
+              </span>
+            </span>
+          </a>
 
-      <div
-        style={{
-          maxWidth: "80rem",
-          margin: "0 auto",
-          padding: "3.5rem 1.5rem 2rem",
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))",
-            gap: "2.5rem",
-            marginBottom: "2.5rem",
-          }}
-        >
-          {/* Brand */}
-          <div style={{ gridColumn: "auto" }} className="lg:col-span-2">
-            <Link
-              to="/"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                textDecoration: "none",
-                marginBottom: "1.125rem",
-              }}
-            >
-              <div
-                style={{
-                  width: "2.75rem",
-                  height: "2.75rem",
-                  borderRadius: "50%",
-                  overflow: "hidden",
-                  border: "1px solid var(--color-border)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <img
-                  src="/images/logo.jpeg"
-                  alt="MATERPOOLS AND CONTRUCTION logo"
-                  width={44}
-                  height={44}
-                  loading="eager"
-                  decoding="async"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-              </div>
-            </Link>
-            <p
-              style={{
-                color: "var(--color-text-secondary)",
-                fontSize: "0.875rem",
-                lineHeight: 1.75,
-                marginBottom: "1.25rem",
-                maxWidth: "22rem",
-              }}
-            >
-              Zimbabwe's most trusted luxury pool builders since 2014. Crafting
-              extraordinary aquatic experiences for residential, commercial, and
-              custom projects.
-            </p>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              {[Facebook, Instagram, Twitter, Linkedin].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  style={{
-                    width: "2.25rem",
-                    height: "2.25rem",
-                    borderRadius: "8px",
-                    background: "var(--color-gray-100)",
-                    border: "1px solid var(--color-border)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "var(--color-gray-400)",
-                    textDecoration: "none",
-                    transition: "all 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background =
-                      "var(--color-primary-50)";
-                    e.currentTarget.style.color = "var(--color-primary-700)";
-                    e.currentTarget.style.borderColor =
-                      "var(--color-primary-200)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "var(--color-gray-100)";
-                    e.currentTarget.style.color = "var(--color-gray-400)";
-                    e.currentTarget.style.borderColor = "var(--color-border)";
-                  }}
-                >
-                  <Icon style={{ width: "0.875rem", height: "0.875rem" }} />
-                </a>
-              ))}
-            </div>
-            {/* WhatsApp Icon */}
-            <a
-              href="https://wa.me/263772562125"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-flex",
-                width: "2.25rem",
-                height: "2.25rem",
-                borderRadius: "8px",
-                background: "var(--color-gray-100)",
-                border: "1px solid var(--color-border)",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "var(--color-gray-400)",
-                textDecoration: "none",
-                transition: "all 0.15s ease",
-                marginLeft: "0.5rem",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#25D366";
-                e.currentTarget.style.color = "#FFFFFF";
-                e.currentTarget.style.borderColor = "#25D366";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "var(--color-gray-100)";
-                e.currentTarget.style.color = "var(--color-gray-400)";
-                e.currentTarget.style.borderColor = "var(--color-border)";
-              }}
-            >
-              <MessageCircle
-                style={{ width: "0.875rem", height: "0.875rem" }}
-              />
-            </a>
-          </div>
+          <a
+            href={COMPANY.whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-3"
+          >
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-ink-200 bg-white text-sky-600">
+              <MessageCircle size={15} strokeWidth={2} aria-hidden="true" />
+            </span>
+            <span>
+              <span className="data-label">WhatsApp</span>
+              <span className="mt-1 block text-[14px] font-semibold text-ink-900 group-hover:text-sky-700">
+                Message the sales desk
+              </span>
+            </span>
+          </a>
 
-          {/* Links */}
-          <div>
-            <p
-              style={{
-                fontSize: "0.6875rem",
-                fontWeight: 700,
-                color: "var(--color-text-tertiary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                marginBottom: "1rem",
-              }}
-            >
-              Company
-            </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.625rem",
-              }}
-            >
-              {[
-                { to: "/", l: "Home" },
-                { to: "/projects", l: "Projects" },
-                { to: "/latest", l: "Latest Updates" },
-                { to: "/about", l: "About Us" },
-                { to: "/contact", l: "Contact" },
-                { to: "/quotation", l: "Get a Quote" },
-              ].map(({ to, l }) => (
-                <Link
-                  key={to}
-                  to={to as any}
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    fontSize: "0.875rem",
-                    textDecoration: "none",
-                    transition: "color 0.15s ease",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "var(--color-primary-900)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color =
-                      "var(--color-text-secondary)")
-                  }
-                >
-                  {l}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Pool types */}
-          <div>
-            <p
-              style={{
-                fontSize: "0.6875rem",
-                fontWeight: 700,
-                color: "var(--color-text-tertiary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                marginBottom: "1rem",
-              }}
-            >
-              Pool Types
-            </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.625rem",
-              }}
-            >
-              {[
-                { label: "Residential", type: "residential" },
-                { label: "Commercial", type: "commercial" },
-                { label: "Infinity Edge", type: "infinity" },
-                { label: "Olympic", type: "olympic" },
-                { label: "Indoor", type: "indoor" },
-                { label: "Natural/Bio", type: "natural" },
-              ].map(({ label, type }) => (
-                <Link
-                  key={type}
-                  to="/projects"
-                  search={{ poolType: type }}
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    fontSize: "0.875rem",
-                    textDecoration: "none",
-                    transition: "color 0.15s ease",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "var(--color-primary-900)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color =
-                      "var(--color-text-secondary)")
-                  }
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <p
-              style={{
-                fontSize: "0.6875rem",
-                fontWeight: 700,
-                color: "var(--color-text-tertiary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                marginBottom: "1rem",
-              }}
-            >
-              Contact
-            </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.875rem",
-              }}
-            >
-              {[
-                {
-                  Icon: Phone,
-                  text: "+263 772 562 125",
-                  href: "tel:+263772562125",
-                },
-                {
-                  Icon: Phone,
-                  text: "+263 775 206 774",
-                  href: "tel:+263775206774",
-                },
-                {
-                  Icon: MessageCircle,
-                  text: "WhatsApp",
-                  href: "https://wa.me/263772562125",
-                },
-              ].map(({ Icon, text, href }) => (
-                <div
-                  key={text}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "0.625rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "1.5rem",
-                      height: "1.5rem",
-                      borderRadius: "6px",
-                      background: "var(--color-primary-50)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Icon
-                      style={{
-                        width: "0.75rem",
-                        height: "0.75rem",
-                        color: "var(--color-primary-700)",
-                      }}
-                    />
-                  </div>
-                  {href ? (
-                    <a
-                      href={href}
-                      style={{
-                        color: "var(--color-text-secondary)",
-                        fontSize: "0.875rem",
-                        textDecoration: "none",
-                        transition: "color 0.15s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color =
-                          "var(--color-primary-900)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color =
-                          "var(--color-text-secondary)")
-                      }
-                    >
-                      {text}
-                    </a>
-                  ) : (
-                    <span
-                      style={{
-                        color: "var(--color-text-secondary)",
-                        fontSize: "0.875rem",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      {text}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-            <Link
-              to="/quotation"
-              className="btn btn-primary btn-sm"
-              style={{
-                marginTop: "1.25rem",
-                display: "inline-flex",
-                gap: "0.375rem",
-                textDecoration: "none",
-              }}
-            >
-              Book Consultation
-            </Link>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <p
-              style={{
-                fontSize: "0.6875rem",
-                fontWeight: 700,
-                color: "var(--color-text-tertiary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.12em",
-                marginBottom: "1rem",
-              }}
-            >
-              Newsletter
-            </p>
-            <div>
-              <NewsletterSignup />
-            </div>
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-ink-200 bg-white text-sky-600">
+              <MapPin size={15} strokeWidth={2} aria-hidden="true" />
+            </span>
+            <span>
+              <span className="data-label">Operating in</span>
+              <span className="mt-1 block text-[14px] font-semibold text-ink-900">
+                {COMPANY.coverage}
+              </span>
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Bottom */}
-        <div
-          style={{
-            borderTop: "1px solid var(--color-border)",
-            paddingTop: "1.5rem",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "1rem",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-              flexWrap: "wrap",
-            }}
-          >
-            <p
-              style={{
-                color: "var(--color-text-tertiary)",
-                fontSize: "0.8125rem",
-                margin: 0,
-              }}
-            >
-              © {year} MATERPOOLS AND CONTRUCTION Zimbabwe (Pvt) Ltd. All rights
-              reserved.
-            </p>
-            <p
-              style={{
-                color: "var(--color-text-tertiary)",
-                fontSize: "0.8125rem",
-                margin: 0,
-              }}
-            >
-              Established 2014 · {yearsExp} {yearsExp === 1 ? "year" : "years"}{" "}
-              experience
-            </p>
-            <p
-              style={{
-                color: "var(--color-text-tertiary)",
-                fontSize: "0.8125rem",
-                margin: 0,
-              }}
-            >
-              Built by{" "}
-              <span
-                style={{ fontWeight: 600, color: "var(--color-primary-700)" }}
-              >
-                Aurovex Labs
+      {/* Link columns */}
+      <div className="container-xl grid gap-x-10 gap-y-10 py-12 md:grid-cols-2 lg:grid-cols-[1.5fr_0.9fr_0.9fr_0.9fr_1.2fr]">
+        <div>
+          <Link to="/" className="flex items-center gap-2.5" aria-label="MasterPools home">
+            <img
+              src="/images/logo.jpeg"
+              alt=""
+              width={40}
+              height={34}
+              loading="lazy"
+              decoding="async"
+              className="h-10 w-auto rounded-[6px] object-contain"
+            />
+            <span className="flex flex-col leading-none">
+              <span className="font-display text-[17px] font-extrabold tracking-[-0.015em] text-ink-900">
+                MASTERPOOLS
               </span>
-            </p>
-          </div>
-          <div
-            style={{ display: "flex", gap: "1.25rem", alignItems: "center" }}
+              <span className="mt-1 text-[8.5px] uppercase tracking-[0.125em] text-ink-500">
+                Pool construction &amp; equipment
+              </span>
+            </span>
+          </Link>
+
+          <p className="mt-4 max-w-[290px] text-[13.5px] leading-relaxed text-ink-600">
+            Pool construction, renovation, maintenance and equipment supply
+            across Zimbabwe, run from {COMPANY.basesLabel}. Trading since{" "}
+            {COMPANY.established}.
+          </p>
+
+          <a
+            href={`mailto:${COMPANY.email}`}
+            className="mt-4 inline-flex items-center gap-2 text-[13.5px] text-ink-600 hover:text-sky-700"
           >
-            <div style={{ display: "flex", gap: "1.25rem" }}>
-              {[
-                { label: "Privacy Policy", to: "/privacy-policy" },
-                { label: "Terms of Service", to: "/terms-of-service" },
-                { label: "Cookie Policy", to: "/cookie-policy" },
-              ].map(({ label, to }) => (
+            <Mail size={14} className="text-sky-600" aria-hidden="true" />
+            {COMPANY.email}
+          </a>
+        </div>
+
+        <nav aria-label="Services">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.11em] text-ink-500">
+            Services
+          </h2>
+          <ul className="space-y-2">
+            {SERVICE_GROUPS.map((group) => (
+              <li key={group.slug}>
                 <Link
-                  key={label}
-                  to={to as any}
-                  style={{
-                    color: "var(--color-text-tertiary)",
-                    fontSize: "0.75rem",
-                    textDecoration: "none",
-                    transition: "color 0.15s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color =
-                      "var(--color-text-secondary)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "var(--color-text-tertiary)")
-                  }
+                  to="/services"
+                  hash={group.slug}
+                  className="text-[13.5px] text-ink-600 hover:text-sky-700"
                 >
-                  {label}
+                  {group.name}
                 </Link>
-              ))}
-            </div>
+              </li>
+            ))}
+            <li>
+              <Link
+                to="/services"
+                className="inline-flex items-center gap-1 text-[13.5px] font-semibold text-sky-700"
+              >
+                All services
+                <ArrowUpRight size={13} aria-hidden="true" />
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        <nav aria-label="Equipment">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.11em] text-ink-500">
+            Equipment
+          </h2>
+          <ul className="space-y-2">
+            {SHOP_LINKS.map((item) => (
+              <li key={item.category}>
+                <Link
+                  to="/market"
+                  search={{ category: item.category }}
+                  className="text-[13.5px] text-ink-600 hover:text-sky-700"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                to="/market"
+                className="inline-flex items-center gap-1 text-[13.5px] font-semibold text-sky-700"
+              >
+                All equipment
+                <ArrowUpRight size={13} aria-hidden="true" />
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        <nav aria-label="Company">
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.11em] text-ink-500">
+            Company
+          </h2>
+          <ul className="space-y-2">
+            {COMPANY_LINKS.map((item) => (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  className="text-[13.5px] text-ink-600 hover:text-sky-700"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link
+                to="/quotation"
+                className="text-[13.5px] text-ink-600 hover:text-sky-700"
+              >
+                Request a quotation
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        <div>
+          <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.11em] text-ink-500">
+            Requests
+          </h2>
+          <ul className="space-y-2">
+            <li>
+              <Link
+                to="/market/quote"
+                className="text-[13.5px] text-ink-600 hover:text-sky-700"
+              >
+                Quote basket
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/dashboard"
+                className="text-[13.5px] text-ink-600 hover:text-sky-700"
+              >
+                My account
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/contact"
+                className="text-[13.5px] text-ink-600 hover:text-sky-700"
+              >
+                Book a site visit
+              </Link>
+            </li>
+          </ul>
+
+          <h2 className="mt-6 mb-2 text-[11px] font-semibold uppercase tracking-[0.11em] text-ink-500">
+            Stock updates
+          </h2>
+          <NewsletterSignup />
+        </div>
+      </div>
+
+      <div className="border-t border-ink-200">
+        <div className="container-xl flex flex-wrap items-center justify-between gap-3 py-4">
+          <p className="text-[12.5px] text-ink-500">
+            © {year} {COMPANY.legalName}. Harare, Zimbabwe.
+          </p>
+          <div className="flex items-center gap-5">
+            {[
+              { to: "/privacy-policy", label: "Privacy" },
+              { to: "/terms-of-service", label: "Terms" },
+              { to: "/cookie-policy", label: "Cookies" },
+            ].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to as never}
+                className="text-[12.5px] text-ink-500 hover:text-ink-900"
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
       </div>

@@ -94,12 +94,15 @@ export const uploadVideo = async (req, res) => {
 
 export const getVideos = async (req, res) => {
   try {
-    const { active = true } = req.query;
+    // `active` is a boolean on the model, so it must not be compared to the
+    // string "true" — doing that returned inactive videos to the public site.
+    const activeOnly =
+      req.query.active === undefined ? true : req.query.active === "true";
 
-    const query = active === "true" ? { active: true } : {};
+    const query = activeOnly ? { active: true } : {};
     const videos = await Video.find(query).sort({ order: 1, createdAt: -1 });
 
-    if (active === "true") {
+    if (activeOnly) {
       res.set(
         "Cache-Control",
         "public, max-age=300, stale-while-revalidate=86400",

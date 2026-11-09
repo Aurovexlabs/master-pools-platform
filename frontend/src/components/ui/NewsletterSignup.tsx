@@ -34,20 +34,20 @@ export default function NewsletterSignup() {
         placeholder="Your name (optional)"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="px-3 py-2 border rounded"
+        className="input h-9 text-[13px]"
       />
       <input
         aria-label="Email"
         placeholder="you@yourdomain.com"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="px-3 py-2 border rounded"
+        className="input h-9 text-[13px]"
         type="email"
         required
       />
       <button
         type="submit"
-        className="px-4 py-2 bg-blue-600 text-white rounded"
+        className="btn btn-primary btn-sm w-full"
         disabled={loading}
       >
         {loading ? "Subscribing…" : "Subscribe"}

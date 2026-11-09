@@ -1,22 +1,16 @@
 {
-  "name": "MATERPOOLS AND CONTRUCTION",
-  "short_name": "MATERPOOLS",
-  "description": "Luxury swimming pool construction in Zimbabwe.",
+  "name": "MasterPools — Pool construction & equipment",
+  "short_name": "MasterPools",
+  "description": "Swimming pool construction, renovation, maintenance and equipment supply in Harare and Bulawayo. Trading since 2014.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f9fafb",
-  "theme_color": "#1e3a8a",
+  "background_color": "#ffffff",
+  "theme_color": "#0284c7",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
       "src": "/images/logo.jpeg",
-      "sizes": "512x512",
+      "sizes": "any",
       "type": "image/jpeg",
       "purpose": "any"
     }

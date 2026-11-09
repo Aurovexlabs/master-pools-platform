@@ -6,6 +6,7 @@ import type {
   Project,
   Quotation,
   User,
+  VideoRecord,
 } from "../types";
 
 import api from "../api/client";
@@ -550,7 +551,7 @@ export const useVideos = (active = true) =>
     queryKey: QK.videos,
     queryFn: () =>
       api
-        .get<{ videos: any[] }>("/videos", { params: { active } })
+        .get<{ videos: VideoRecord[] }>("/videos", { params: { active } })
         .then((r) => r.data.videos),
     staleTime: 5 * 60_000,
   });

@@ -387,7 +387,7 @@ export default function AdminBlogs() {
           justifyContent: "space-between",
           gap: "1rem",
           background:
-            "linear-gradient(135deg, var(--color-primary-900), var(--color-secondary-600))",
+            "var(--color-sky-600)",
           borderRadius: "16px",
           boxShadow: "0 4px 16px rgba(30,58,138,0.2)",
         }}

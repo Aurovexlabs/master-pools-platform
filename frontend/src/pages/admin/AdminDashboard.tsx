@@ -114,7 +114,7 @@ export default function AdminDashboard() {
       <motion.div {...f(0)} style={{
         padding: '1.25rem 1.5rem', display: 'flex', flexWrap: 'wrap',
         alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
-        background: 'linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-primary-800) 60%, var(--color-secondary-600) 100%)',
+        background: 'var(--color-sky-800)',
         borderRadius: '16px', boxShadow: '0 4px 16px rgba(30,58,138,0.2)',
       }}>
         <div>

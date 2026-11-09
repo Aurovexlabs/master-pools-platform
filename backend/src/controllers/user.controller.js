@@ -1,14 +1,17 @@
 import User from "../models/User.model.js";
 import { sendFromPlatform } from "../utils/email.service.js";
+import { escapeRegex } from "../utils/safe.js";
 
 export const adminGetUsers = async (req, res) => {
   const { page = 1, limit = 20, search } = req.query;
   const filter = { role: "user" };
-  if (search)
+  if (search) {
+    const term = escapeRegex(search);
     filter.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
+      { name: { $regex: term, $options: "i" } },
+      { email: { $regex: term, $options: "i" } },
     ];
+  }
   const total = await User.countDocuments(filter);
   const users = await User.find(filter)
     .sort("-createdAt")

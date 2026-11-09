@@ -19,11 +19,12 @@ export function StructuredData({ schema }: SchemaProps) {
 export const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
-  name: "MATERPOOLS AND CONTRUCTION",
+  name: "MasterPools",
   url: "https://www.masterspools.co.zw",
   logo: "https://www.masterspools.co.zw/images/logo.jpeg",
   description:
-    "Zimbabwe's most trusted luxury swimming pool construction company",
+    "Swimming pool construction, renovation, maintenance and equipment supply across Zimbabwe, run from Harare and Bulawayo. Trading since 2014.",
+  foundingDate: "2014",
   telephone: "+263772562125",
   address: {
     "@type": "PostalAddress",

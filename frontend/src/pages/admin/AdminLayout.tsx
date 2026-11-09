@@ -18,7 +18,9 @@ import {
   Mail,
   Menu,
   MessageCircle,
+  Package,
   Play,
+  Receipt,
   Star,
   Users,
 } from "lucide-react";
@@ -32,6 +34,8 @@ import { useUIStore } from "../../stores/ui.store";
 
 const NAV = [
   { to: "/admin/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/market-quotes", label: "Market quotes", icon: Receipt },
   { to: "/admin/projects", label: "Projects", icon: FolderOpen },
   { to: "/admin/quotations", label: "Quotations", icon: FileText },
   { to: "/admin/blogs", label: "Blogs", icon: FileText },
@@ -412,7 +416,6 @@ export default function AdminLayout() {
         animate={{ width: sidebarW }}
         transition={{ duration: 0.22, ease: "easeInOut" }}
         style={{
-          display: "none",
           flexShrink: 0,
           background: "#fff",
           borderRight: "1px solid var(--color-border)",
@@ -493,7 +496,8 @@ export default function AdminLayout() {
         >
           <button
             onClick={() => setMobileOpen(true)}
-            className="lg:hidden"
+            className="flex lg:hidden"
+            aria-label="Open admin navigation"
             style={{
               padding: "0.5rem",
               borderRadius: "8px",
@@ -501,7 +505,6 @@ export default function AdminLayout() {
               border: "1px solid var(--color-border)",
               cursor: "pointer",
               color: "var(--color-gray-600)",
-              display: "flex",
             }}
           >
             <Menu style={{ width: "1.125rem", height: "1.125rem" }} />
@@ -540,7 +543,6 @@ export default function AdminLayout() {
               style={{
                 fontSize: "0.75rem",
                 color: "var(--color-text-tertiary)",
-                display: "none",
                 fontFamily: "var(--font-mono)",
               }}
               className="hidden md:block"
@@ -565,7 +567,6 @@ export default function AdminLayout() {
             )}
             <div
               style={{
-                display: "none",
                 alignItems: "center",
                 gap: "0.375rem",
                 padding: "0.3125rem 0.625rem",

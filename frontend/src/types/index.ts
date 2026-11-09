@@ -12,6 +12,25 @@ export interface User {
   updatedAt: string;
 }
 
+/**
+ * A video exactly as the public `/api/videos` endpoint returns it. Media is a
+ * self-hosted file (ImageKit), not an external embed, so `src` is playable in a
+ * native `<video>` element. `thumbnail` is a derived ImageKit URL and may be
+ * null for older records.
+ */
+export interface VideoRecord {
+  _id: string;
+  title: string;
+  url: string;
+  src?: string;
+  fileId?: string;
+  thumbnail?: string | null;
+  size?: number | null;
+  order: number;
+  active: boolean;
+  createdAt: string;
+}
+
 export interface ProjectImage {
   url: string;
   fileId: string;
@@ -221,4 +240,116 @@ export interface ContactForm {
   phone?: string;
   subject: string;
   message: string;
+}
+
+/* ── Marketplace ─────────────────────────────────────────────────────────── */
+
+export type ProductCategory =
+  | "pumps"
+  | "filtration"
+  | "heating"
+  | "lighting"
+  | "cleaning"
+  | "chemicals"
+  | "covers"
+  | "ladders-rails"
+  | "tiles-finishes"
+  | "spares"
+  | "services";
+
+export interface ProductImage {
+  url: string;
+  fileId?: string;
+  thumbnail?: string;
+  alt?: string;
+}
+
+export interface ProductSpec {
+  label: string;
+  value: string;
+}
+
+export interface Product {
+  _id: string;
+  title: string;
+  slug: string;
+  sku: string;
+  brand?: string;
+  category: ProductCategory;
+  shortDescription?: string;
+  description?: string;
+  highlights?: string[];
+  specs?: ProductSpec[];
+  price: { amount: number; currency: string };
+  compareAtPrice?: number;
+  unit: string;
+  stock: number;
+  images?: ProductImage[];
+  datasheet?: ProductImage;
+  warrantyMonths?: number;
+  installRequired?: boolean;
+  isFeatured: boolean;
+  isPublished: boolean;
+  publishedAt?: string;
+  views: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductFacets {
+  categories: { value: ProductCategory; count: number }[];
+  brands: { value: string; count: number }[];
+  priceRange: { min: number; max: number };
+  totals: { all: number; inStock: number; outOfStock: number };
+}
+
+/** A line in the local quote basket (prices are re-checked server side). */
+export interface BasketLine {
+  productId: string;
+  slug: string;
+  sku: string;
+  title: string;
+  brand?: string;
+  unit: string;
+  unitPrice: number;
+  stock: number;
+  image?: string;
+  qty: number;
+}
+
+export type MarketQuoteStatus =
+  | "pending"
+  | "reviewing"
+  | "quoted"
+  | "accepted"
+  | "declined"
+  | "expired";
+
+export interface MarketQuoteItem {
+  product: string;
+  title: string;
+  sku: string;
+  unit: string;
+  unitPrice: number;
+  qty: number;
+  lineTotal: number;
+}
+
+export interface MarketQuote {
+  _id: string;
+  referenceNumber: string;
+  user: Pick<User, "_id" | "name" | "email"> | string;
+  items: MarketQuoteItem[];
+  subtotal: number;
+  currency: string;
+  deliveryCity?: string;
+  notes?: string;
+  contact?: { name?: string; email?: string; phone?: string };
+  status: MarketQuoteStatus;
+  quotedAmount?: number;
+  adminNotes?: string;
+  quotedAt?: string;
+  conversationId?: string;
+  createdAt: string;
+  updatedAt: string;
 }

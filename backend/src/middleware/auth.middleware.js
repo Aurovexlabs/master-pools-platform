@@ -13,6 +13,18 @@ export const protect = async (req, res, next) => {
     if (!user || !user.isActive) {
       return res.status(401).json({ message: 'User not found or inactive' });
     }
+
+    // A token is issued at registration, before the email is confirmed. Until
+    // the account is verified it must not unlock protected endpoints. Login
+    // already refuses unverified accounts, so this does not lock out anyone
+    // who can sign in.
+    if (!user.isVerified) {
+      return res.status(403).json({
+        message: 'Please verify your email address to continue',
+        needsVerification: true,
+      });
+    }
+
     req.user = user;
     next();
   } catch (err) {

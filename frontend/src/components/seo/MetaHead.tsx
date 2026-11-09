@@ -28,10 +28,10 @@ export function MetaHead({
   ogDescription,
   ogImage,
   ogType = "website",
-  siteName = "MATERPOOLS AND CONTRUCTION",
+  siteName = "MasterPools",
   twitterCard = "summary_large_image",
   twitterSite = "@masterspools",
-  themeColor = "#1e3a8a",
+  themeColor = "#0284c7",
   noindex = false,
 }: MetaHeadProps) {
   useEffect(() => {

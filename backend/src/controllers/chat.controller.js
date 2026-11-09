@@ -69,10 +69,18 @@ export const sendMessage = async (req, res) => {
 }
 
 export const closeConversation = async (req, res) => {
-  const conversation = await Conversation.findByIdAndUpdate(
-    req.params.conversationId,
-    { status: 'closed' },
-    { new: true }
-  )
+  const conversation = await Conversation.findById(req.params.conversationId)
+  if (!conversation) return res.status(404).json({ message: 'Conversation not found' })
+
+  // Only the owner or an administrator may close a conversation.
+  if (
+    req.user.role !== 'admin' &&
+    conversation.user.toString() !== req.user._id.toString()
+  ) {
+    return res.status(403).json({ message: 'Access denied' })
+  }
+
+  conversation.status = 'closed'
+  await conversation.save()
   res.json({ conversation })
 }

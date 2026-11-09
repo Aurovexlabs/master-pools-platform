@@ -63,7 +63,7 @@ export default function VideoCarousel({ videos, className = "" }: Props) {
           className="h-full w-full object-cover"
         />
 
-        <div className="absolute inset-0 bg-linear-to-t from-slate-950/40 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-black/25" />
 
         <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 sm:inset-x-6 sm:bottom-6">
           <div className="flex shrink-0 items-center gap-2">

@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useConversations, useMyQuotations } from "../hooks/useApi";
+import { useMyMarketQuotes } from "../hooks/useMarket";
+import { formatUSD } from "../utils/format";
 import { useAuthStore } from "../stores/auth.store";
 import { useUIStore } from "../stores/ui.store";
 import type { Conversation } from "../types";
@@ -78,7 +80,7 @@ export default function DashboardPage() {
   const { user } = useAuthStore();
   const { setChatOpen, setActiveConversation } = useUIStore();
   const [activeTab, setActiveTab] = useState<
-    "overview" | "quotations" | "messages"
+    "overview" | "quotations" | "equipment" | "messages"
   >("overview");
 
   const {
@@ -88,6 +90,7 @@ export default function DashboardPage() {
   } = useMyQuotations();
   const { data: convData, isLoading: cLoading } = useConversations();
   const conversations: Conversation[] = (convData as any) || [];
+  const { data: marketQuotes = [] } = useMyMarketQuotes();
 
   const openConversation = (id: string) => {
     setActiveConversation(id);
@@ -203,7 +206,7 @@ export default function DashboardPage() {
                 <span
                   style={{
                     background:
-                      "linear-gradient(135deg, var(--color-primary-900), var(--color-secondary-500))",
+                      "var(--color-sky-600)",
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
@@ -366,7 +369,7 @@ export default function DashboardPage() {
               gap: "1rem",
               padding: "1.125rem 1.25rem",
               background:
-                "linear-gradient(135deg, var(--color-primary-50) 0%, #fff 100%)",
+                "var(--color-sky-50)",
               border: "1px solid var(--color-primary-100)",
               borderRadius: "14px",
               boxShadow: "0 1px 3px rgba(30,58,138,0.06)",
@@ -459,7 +462,7 @@ export default function DashboardPage() {
             width: "fit-content",
           }}
         >
-          {(["overview", "quotations", "messages"] as const).map((tab) => (
+          {(["overview", "quotations", "equipment", "messages"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -479,7 +482,7 @@ export default function DashboardPage() {
                 color: activeTab === tab ? "#fff" : "var(--color-gray-500)",
               }}
             >
-              {tab}
+              {tab === "equipment" ? "Equipment quotes" : tab}
               {tab === "messages" && stats.unreadMessages > 0 && (
                 <span
                   style={{
@@ -1462,6 +1465,92 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* ── TAB: EQUIPMENT QUOTE REQUESTS ─────────────────────────── */}
+        {activeTab === "equipment" && (
+          <motion.div {...fadeIn(0)}>
+            <div className="card" style={{ padding: "1.25rem" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: "1rem",
+                  marginBottom: "1rem",
+                }}
+              >
+                <div>
+                  <h2 className="heading-sm">Equipment quote requests</h2>
+                  <p className="meta" style={{ marginTop: 4 }}>
+                    Baskets submitted from the shop, priced by the sales desk.
+                  </p>
+                </div>
+                <Link to="/market" className="btn btn-secondary btn-sm">
+                  Browse equipment
+                </Link>
+              </div>
+
+              {!marketQuotes.length ? (
+                <div style={{ padding: "2.5rem 1rem", textAlign: "center" }}>
+                  <p className="muted">
+                    No equipment quote requests yet. Add stock to the quote basket
+                    and we will price it with delivery.
+                  </p>
+                  <Link
+                    to="/market"
+                    className="btn btn-primary btn-sm"
+                    style={{ marginTop: "0.875rem" }}
+                  >
+                    Open the shop
+                  </Link>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {marketQuotes.map((quote) => (
+                    <div
+                      key={quote._id}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "minmax(0,1fr) auto auto",
+                        gap: "1rem",
+                        alignItems: "center",
+                        padding: "0.875rem 0",
+                        borderTop: "1px solid var(--color-border)",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: "0.875rem", fontWeight: 600 }}>
+                          {quote.referenceNumber}
+                        </p>
+                        <p className="meta">
+                          {quote.items.length} line
+                          {quote.items.length === 1 ? "" : "s"} ·{" "}
+                          {new Date(quote.createdAt).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <span className="badge badge-blue" style={{ textTransform: "capitalize" }}>
+                        {quote.status}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "0.875rem",
+                          fontWeight: 700,
+                          fontVariantNumeric: "tabular-nums",
+                        }}
+                      >
+                        {formatUSD(quote.quotedAmount ?? quote.subtotal)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
 

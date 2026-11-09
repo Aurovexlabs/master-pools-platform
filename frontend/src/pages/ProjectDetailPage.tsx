@@ -287,7 +287,7 @@ export default function ProjectDetailPage({
               position: "absolute",
               inset: 0,
               background:
-                "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%, rgba(0,0,0,0.3) 100%)",
+                "rgba(0,0,0,0.34)",
             }}
           />
 
@@ -689,7 +689,7 @@ export default function ProjectDetailPage({
                         height: "2.75rem",
                         borderRadius: "12px",
                         background:
-                          "linear-gradient(135deg, var(--color-primary-50), var(--color-secondary-50))",
+                          "var(--color-sky-50)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -790,7 +790,7 @@ export default function ProjectDetailPage({
                         height: "2.75rem",
                         borderRadius: "12px",
                         background:
-                          "linear-gradient(135deg, var(--color-secondary-50), var(--color-amber-50))",
+                          "var(--color-sky-50)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -902,7 +902,7 @@ export default function ProjectDetailPage({
                               height: "2.25rem",
                               borderRadius: "50%",
                               background:
-                                "linear-gradient(135deg, var(--color-primary-900), var(--color-primary-700))",
+                                "var(--color-sky-600)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -1084,7 +1084,7 @@ export default function ProjectDetailPage({
                 transition={{ duration: 0.4 }}
                 style={{
                   background:
-                    "linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-primary-800) 100%)",
+                    "var(--color-sky-800)",
                   borderRadius: "20px",
                   padding: "2rem",
                   color: "#fff",

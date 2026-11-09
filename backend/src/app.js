@@ -8,8 +8,11 @@ import authRoutes from "./routes/auth.routes.js";
 import blogRoutes from "./routes/blog.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
+import imageRoutes from "./routes/image.routes.js";
 import newsletterRoutes from "./routes/newsletter.routes.js";
+import marketQuoteRoutes from "./routes/marketQuote.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
+import productRoutes from "./routes/product.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import quotationRoutes from "./routes/quotation.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
@@ -54,7 +57,10 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (isOriginAllowed(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
+      // Reject as 403 rather than letting this surface as a 500.
+      const error = new Error("Not allowed by CORS");
+      error.status = 403;
+      return callback(error);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -77,11 +83,14 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/newsletter", newsletterRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/images", imageRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/videos", videoRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/market-quotes", marketQuoteRoutes);
 
 app.get("/api/health", (_req, res) =>
   res.json({
@@ -122,11 +131,39 @@ if (
 
 app.use((_req, res) => res.status(404).json({ message: "Route not found" }));
 
+const UPLOAD_ERROR_MESSAGES = {
+  LIMIT_FILE_SIZE: "That file is too large",
+  LIMIT_FILE_COUNT: "Too many files in one request",
+  LIMIT_UNEXPECTED_FILE: "Unexpected file field",
+};
+
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
-  const status = err.status || err.statusCode || 500;
+
+  const isMulter = err?.name === "MulterError";
+  const isUploadRejection =
+    typeof err?.message === "string" &&
+    (err.message.startsWith("Only JPEG") ||
+      err.message.includes("valid image"));
+
+  const status = isMulter || isUploadRejection
+    ? 400
+    : err.status || err.statusCode || 500;
+
+  // Client errors keep a useful message; server errors never leak internals.
+  let message;
+  if (isMulter) {
+    message = UPLOAD_ERROR_MESSAGES[err.code] || "That upload could not be accepted";
+  } else if (isUploadRejection) {
+    message = err.message;
+  } else if (status >= 500 && process.env.NODE_ENV === "production") {
+    message = "Internal server error";
+  } else {
+    message = err.message || "Internal server error";
+  }
+
   res.status(status).json({
-    message: err.message || "Internal server error",
+    message,
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 });

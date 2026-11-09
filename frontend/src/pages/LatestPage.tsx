@@ -66,7 +66,7 @@ export default function LatestPage() {
         <section
           style={{
             background:
-              "radial-gradient(circle at top left, rgba(30,58,138,0.16), transparent 35%), linear-gradient(180deg, #fff 0%, var(--color-gray-50) 100%)",
+              "#ffffff",
             borderBottom: "1px solid var(--color-border)",
           }}
         >
@@ -246,7 +246,7 @@ export default function LatestPage() {
                         height: "100%",
                         minHeight: "16rem",
                         background:
-                          "linear-gradient(135deg, var(--color-primary-900), var(--color-secondary-600))",
+                          "var(--color-sky-600)",
                       }}
                     />
                   )}
@@ -409,7 +409,7 @@ export default function LatestPage() {
                               width: "100%",
                               height: "100%",
                               background:
-                                "linear-gradient(135deg, rgba(30,58,138,0.95), rgba(99,102,241,0.9))",
+                                "rgba(0,0,0,0.42)",
                             }}
                           />
                         )}

@@ -282,7 +282,7 @@ export default function QuotationPage() {
               letterSpacing: "-0.03em",
             }}
           >
-            Design Your <span className="gradient-text">Dream Pool</span>
+            Design Your <span className="accent-heading">Dream Pool</span>
           </h1>
           <p
             style={{
@@ -328,7 +328,6 @@ export default function QuotationPage() {
               <span
                 style={{
                   fontSize: "0.75rem",
-                  display: "none",
                   color:
                     i === step
                       ? "var(--color-primary-900)"

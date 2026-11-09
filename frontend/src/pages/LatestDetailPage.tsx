@@ -136,7 +136,7 @@ export default function LatestDetailPage({ slug }: { slug: string }) {
                       width: "100%",
                       height: "100%",
                       background:
-                        "linear-gradient(135deg, var(--color-primary-900), var(--color-secondary-600))",
+                        "var(--color-sky-600)",
                     }}
                   />
                 )}
@@ -294,7 +294,7 @@ export default function LatestDetailPage({ slug }: { slug: string }) {
                             width: "100%",
                             height: "100%",
                             background:
-                              "linear-gradient(135deg, rgba(30,58,138,0.9), rgba(99,102,241,0.85))",
+                              "rgba(0,0,0,0.42)",
                           }}
                         />
                       )}

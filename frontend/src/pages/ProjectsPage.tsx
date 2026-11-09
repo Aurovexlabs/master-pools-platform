@@ -1,83 +1,102 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  ChevronRight,
+  ArrowUpRight,
   Droplets,
-  Grid,
+  LayoutGrid,
   List,
-  MapPin,
+  MessageCircle,
   Search,
+  SlidersHorizontal,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import EmptyState from "../components/public/EmptyState";
+import Pagination from "../components/public/Pagination";
+import PhotoBanner from "../components/public/PhotoBanner";
+import ProjectCaption from "../components/public/ProjectCaption";
+import { POOL_PHOTOS } from "../data/poolPhotos";
+import QuotationCta from "../components/public/QuotationCta";
 import { MetaHead } from "../components/seo/MetaHead";
 import {
   StructuredData,
   breadcrumbSchema,
 } from "../components/seo/StructuredData";
-import ProjectCard from "../components/ui/ProjectCard";
+import OptimizedImage from "../components/ui/Image";
+import { COMPANY } from "../data/company";
 import { useProjects } from "../hooks/useApi";
+import type { Project } from "../types";
 
-const STATUSES = ["all", "completed", "ongoing", "upcoming"];
-const CATEGORIES = [
-  "all",
-  "residential",
-  "commercial",
-  "olympic",
-  "infinity",
-  "indoor",
-  "natural",
-  "custom",
+const LIMIT = 8;
+
+const CATEGORY_FILTERS = [
+  { value: "all", label: "All" },
+  { value: "residential", label: "Residential" },
+  { value: "commercial", label: "Commercial" },
+  { value: "infinity", label: "Infinity" },
+  { value: "olympic", label: "Olympic" },
+  { value: "indoor", label: "Indoor" },
+  { value: "natural", label: "Natural" },
+  { value: "custom", label: "Custom" },
 ];
-const STATUS_LABELS: Record<string, string> = {
-  all: "All Status",
-  completed: "Completed",
-  ongoing: "In Progress",
-  upcoming: "Upcoming",
-};
-const CAT_LABELS: Record<string, string> = {
-  all: "All Types",
-  residential: "Residential",
-  commercial: "Commercial",
-  olympic: "Olympic",
-  infinity: "Infinity",
-  indoor: "Indoor",
-  natural: "Natural",
-  custom: "Custom",
-};
+
+const STATUS_FILTERS = [
+  { value: "all", label: "Any status" },
+  { value: "completed", label: "Completed" },
+  { value: "ongoing", label: "In progress" },
+  { value: "upcoming", label: "Upcoming" },
+];
+
+const coverOf = (project: Project) =>
+  project.coverImage?.thumbnail || project.coverImage?.url || "";
 
 export default function ProjectsPage() {
   const navigate = useNavigate();
+  const searchStr = useRouterState({
+    select: (state) => state.location.searchStr,
+  });
+
+  const params = useMemo(() => new URLSearchParams(searchStr ?? ""), [searchStr]);
+  const urlSearch = params.get("search") ?? "";
+  const legacyProjectId = params.get("projectId") || params.get("id");
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [category, setCategory] = useState("all");
   const [page, setPage] = useState(1);
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // The navbar search writes ?search=; keep the field in step with it.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const projectId = params.get("projectId") || params.get("id");
+    if (!urlSearch) return;
+    setSearch(urlSearch);
+    setPage(1);
+  }, [urlSearch]);
 
-    if (projectId) {
-      navigate({
-        to: "/projects/$id",
-        params: { id: projectId },
-        replace: true,
-      });
-    }
-  }, [navigate]);
+  // Legacy deep link: /projects?projectId=<slug> opens the project directly.
+  useEffect(() => {
+    if (!legacyProjectId) return;
+    navigate({
+      to: "/projects/$id",
+      params: { id: legacyProjectId },
+      replace: true,
+    });
+  }, [legacyProjectId, navigate]);
 
-  const { data, isLoading } = useProjects({
+  const { data, isLoading, isError, refetch } = useProjects({
     page,
-    limit: 12,
+    limit: LIMIT,
     ...(search && { search }),
     ...(status !== "all" && { status }),
     ...(category !== "all" && { category }),
   });
 
   const projects = data?.projects ?? [];
-  const paginationTotal = data?.pagination?.total ?? 0;
+  const total = data?.pagination?.total ?? 0;
   const pages = data?.pagination?.pages ?? 0;
+
+  const hasFilters = Boolean(search) || status !== "all" || category !== "all";
 
   const clearFilters = () => {
     setSearch("");
@@ -85,596 +104,304 @@ export default function ProjectsPage() {
     setCategory("all");
     setPage(1);
   };
-  const hasFilters = search || status !== "all" || category !== "all";
+
+  const changePage = (next: number) => {
+    setPage(next);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   return (
     <>
       <MetaHead
-        title="Pool Projects | MATERPOOLS AND CONTRUCTION — Custom & Commercial"
-        description="Browse our portfolio of luxury swimming pools, from residential sanctuaries to Olympic-grade aquatic complexes."
-        canonical="https://www.masterspools.co.zw/projects"
+        title="Projects | MasterPools — completed swimming pools in Zimbabwe"
+        description="Pools built, renovated and maintained by MasterPools across Zimbabwe. Browse the portfolio by category."
+        canonical={`${COMPANY.siteUrl}/projects`}
       />
       <StructuredData
         schema={breadcrumbSchema([
-          { name: "Home", url: "https://www.masterspools.co.zw/" },
-          { name: "Projects", url: "https://www.masterspools.co.zw/projects" },
+          { name: "Home", url: `${COMPANY.siteUrl}/` },
+          { name: "Projects", url: `${COMPANY.siteUrl}/projects` },
         ])}
       />
-      <div
-        style={{
-          minHeight: "100vh",
-          paddingBottom: "5rem",
-          background: "var(--color-bg)",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            background: "#fff",
-            borderBottom: "1px solid var(--color-border)",
-            padding: "4rem 1.5rem 3.5rem",
-          }}
-        >
-          <div style={{ maxWidth: "80rem", margin: "0 auto" }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-            >
-              <p className="eyebrow" style={{ marginBottom: "0.75rem" }}>
-                Our Portfolio
-              </p>
-              <h1
-                style={{
-                  fontFamily: "var(--font-sans)",
-                  fontSize: "clamp(2.25rem,5vw,3.25rem)",
-                  fontWeight: 800,
-                  color: "var(--color-text)",
-                  marginBottom: "1rem",
-                  letterSpacing: "-0.025em",
-                }}
-              >
-                All <span className="gradient-text">Projects</span>
-              </h1>
-              <p
-                style={{
-                  color: "var(--color-text-secondary)",
-                  maxWidth: "38rem",
-                  fontSize: "1.0625rem",
-                  lineHeight: 1.7,
-                }}
-              >
-                Explore our complete portfolio — from bespoke residential
-                retreats to world-class aquatic centres across Zimbabwe.
-              </p>
-            </motion.div>
-          </div>
-        </div>
 
-        <div
-          style={{
-            maxWidth: "80rem",
-            margin: "0 auto",
-            padding: "2.5rem 1.5rem 0",
-          }}
-        >
-          {/* Filters bar */}
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid var(--color-border)",
-              borderRadius: "14px",
-              padding: "0.875rem 1rem",
-              marginBottom: "2rem",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.75rem",
-              alignItems: "center",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-            }}
-          >
-            {/* Search */}
-            <div style={{ position: "relative", flex: "1", minWidth: "240px" }}>
-              <Search
-                style={{
-                  position: "absolute",
-                  left: "0.875rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: "1rem",
-                  height: "1rem",
-                  color: "var(--color-gray-400)",
-                }}
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                placeholder="Search by name, feature, location…"
-                className="input"
-                style={{
-                  paddingLeft: "2.5rem",
-                  background: "var(--color-gray-50)",
-                  borderColor: "var(--color-border)",
-                }}
-              />
-            </div>
+      {/* ── Title region ─────────────────────────────────────────────────── */}
+      <PhotoBanner
+        image={POOL_PHOTOS.banner.url}
+        title="Projects"
+        intro="Pools built and renovated by MasterPools across Zimbabwe."
+        align="center 55%"
+      />
 
-            {/* Status */}
-            <div style={{ position: "relative" }}>
-              <select
-                value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value);
-                  setPage(1);
-                }}
-                className="select"
-                style={{
-                  width: "auto",
-                  minWidth: "140px",
-                  background: "var(--color-gray-50)",
-                  paddingRight: "2rem",
-                }}
-              >
-                {STATUSES.map((s) => (
-                  <option key={s} value={s}>
-                    {STATUS_LABELS[s]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Category */}
-            <div style={{ position: "relative" }}>
-              <select
-                value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value);
-                  setPage(1);
-                }}
-                className="select"
-                style={{
-                  width: "auto",
-                  minWidth: "140px",
-                  background: "var(--color-gray-50)",
-                  paddingRight: "2rem",
-                }}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {CAT_LABELS[c]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Clear filters */}
-            {hasFilters && (
+      {/* ── Filter bar ───────────────────────────────────────────────────── */}
+      <div className="border-y border-ink-200">
+        <div className="container-xl flex flex-wrap items-center gap-2 py-3">
+          <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by category">
+            {CATEGORY_FILTERS.map((option) => (
               <button
-                onClick={clearFilters}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.375rem",
-                  padding: "0.5rem 0.875rem",
-                  borderRadius: "8px",
-                  background: "rgba(239,68,68,0.06)",
-                  border: "1px solid rgba(239,68,68,0.2)",
-                  color: "#DC2626",
-                  fontSize: "0.8125rem",
-                  cursor: "pointer",
-                  fontWeight: 600,
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  setCategory(option.value);
+                  setPage(1);
                 }}
+                aria-pressed={category === option.value}
+                className={`chip chip-lg ${category === option.value ? "chip-on" : ""}`}
               >
-                <X style={{ width: "0.875rem", height: "0.875rem" }} /> Clear
+                {option.label}
               </button>
-            )}
+            ))}
+          </div>
 
-            {/* View toggle */}
+          <div className="ml-auto flex items-center gap-3">
+            <span className="hidden text-[12.5px] tabular-nums text-ink-500 sm:inline">
+              {total} {total === 1 ? "project" : "projects"}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((open) => !open)}
+              aria-expanded={filtersOpen}
+              aria-controls="project-filters"
+              className={`chip chip-lg ${hasFilters ? "border-sky-200 bg-sky-50 text-sky-700" : ""}`}
+            >
+              <SlidersHorizontal size={14} strokeWidth={2} aria-hidden="true" />
+              Filters
+              {hasFilters && (
+                <span className="ml-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-sky-600 px-1 text-[10px] font-bold text-white">
+                  {[search, status !== "all", category !== "all"].filter(Boolean).length}
+                </span>
+              )}
+            </button>
+
             <div
-              style={{
-                display: "flex",
-                gap: "0.125rem",
-                marginLeft: "auto",
-                background: "var(--color-gray-100)",
-                padding: "0.25rem",
-                borderRadius: "8px",
-              }}
+              className="flex items-center gap-0.5 rounded-lg border border-ink-200 p-0.5"
+              role="group"
+              aria-label="View"
             >
               {[
-                { v: "grid", I: Grid },
-                { v: "list", I: List },
-              ].map(({ v, I }) => (
+                { value: "grid" as const, Icon: LayoutGrid, label: "Grid view" },
+                { value: "list" as const, Icon: List, label: "List view" },
+              ].map(({ value, Icon, label }) => (
                 <button
-                  key={v}
-                  onClick={() => setView(v as any)}
-                  style={{
-                    padding: "0.375rem",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    border: "none",
-                    transition: "all 0.15s ease",
-                    background: view === v ? "#fff" : "transparent",
-                    color:
-                      view === v
-                        ? "var(--color-primary-900)"
-                        : "var(--color-gray-400)",
-                    boxShadow:
-                      view === v ? "0 1px 2px rgba(0,0,0,0.1)" : "none",
-                  }}
+                  key={value}
+                  type="button"
+                  onClick={() => setView(value)}
+                  aria-label={label}
+                  aria-pressed={view === value}
+                  className={`grid h-8 w-8 place-items-center rounded-[6px] transition-colors ${
+                    view === value
+                      ? "bg-sky-600 text-white"
+                      : "text-ink-500 hover:bg-surface hover:text-ink-900"
+                  }`}
                 >
-                  <I style={{ width: "1rem", height: "1rem" }} />
+                  <Icon size={15} strokeWidth={2} aria-hidden="true" />
                 </button>
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Results count */}
-          {data && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "1.5rem",
-                flexWrap: "wrap",
-                gap: "0.75rem",
-              }}
-            >
-              <p
-                style={{
-                  color: "var(--color-text-secondary)",
-                  fontSize: "0.875rem",
-                  fontWeight: 500,
-                }}
-              >
-                Showing{" "}
-                <span style={{ color: "var(--color-text)", fontWeight: 700 }}>
-                  {projects.length}
-                </span>{" "}
-                of{" "}
-                <span style={{ color: "var(--color-text)", fontWeight: 700 }}>
-                  {paginationTotal}
-                </span>{" "}
-                projects
-                {hasFilters && (
-                  <span
-                    style={{
-                      marginLeft: "0.5rem",
-                      color: "var(--color-primary-600)",
-                    }}
-                  >
-                    · filters applied
-                  </span>
-                )}
-              </p>
-            </div>
-          )}
-
-          {/* Projects grid */}
-          {isLoading ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  view === "list"
-                    ? "1fr"
-                    : "repeat(auto-fill, minmax(300px,1fr))",
-                gap: "1.5rem",
-              }}
-            >
-              {Array.from({ length: 8 }, (_, i) => (
-                <div
-                  key={i}
-                  className="skeleton"
-                  style={{ height: view === "list" ? "6rem" : "20rem" }}
-                />
-              ))}
-            </div>
-          ) : !data?.projects?.length ? (
-            <div
-              className="card"
-              style={{ textAlign: "center", padding: "6rem 1.5rem" }}
-            >
-              <div
-                style={{
-                  width: "4rem",
-                  height: "4rem",
-                  borderRadius: "50%",
-                  background: "var(--color-gray-100)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 1.5rem",
-                }}
-              >
+        {filtersOpen && (
+          <div id="project-filters" className="border-t border-ink-200 bg-surface">
+            <div className="container-xl flex flex-wrap items-center gap-3 py-3">
+              <div className="relative min-w-[220px] flex-1">
                 <Search
-                  style={{
-                    width: "2rem",
-                    height: "2rem",
-                    color: "var(--color-gray-300)",
+                  size={15}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-400"
+                />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setPage(1);
                   }}
+                  placeholder="Search by name, feature or location"
+                  aria-label="Search projects"
+                  className="h-11 w-full rounded-lg border border-ink-200 bg-white pl-9 pr-3 text-[13.5px] text-ink-900 outline-none focus:border-sky-500"
                 />
               </div>
-              <h3
-                style={{
-                  fontWeight: 700,
-                  fontSize: "1.5rem",
-                  color: "var(--color-text)",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                No projects found
-              </h3>
-              <p
-                style={{
-                  color: "var(--color-text-tertiary)",
-                  marginBottom: "2rem",
-                  maxWidth: "24rem",
-                  margin: "0 auto 2rem",
-                }}
-              >
-                We couldn't find any projects matching your current filters. Try
-                broadening your search.
-              </p>
-              <button onClick={clearFilters} className="btn btn-primary btn-md">
-                Clear All Filters
-              </button>
-            </div>
-          ) : view === "list" ? (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-            >
-              {projects.map((project, i) => (
-                <motion.div
-                  key={project._id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                >
-                  <Link
-                    to="/projects/$id"
-                    params={{ id: project.slug || project._id }}
-                    style={{
-                      display: "flex",
-                      gap: "1.25rem",
-                      background: "#fff",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: "12px",
-                      padding: "1rem",
-                      textDecoration: "none",
-                      transition: "all 0.2s ease",
-                      alignItems: "center",
-                      boxShadow: "var(--shadow-xs)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        "var(--color-primary-200)";
-                      e.currentTarget.style.boxShadow = "var(--shadow-md)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "var(--color-border)";
-                      e.currentTarget.style.boxShadow = "var(--shadow-xs)";
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "6rem",
-                        height: "4.5rem",
-                        borderRadius: "8px",
-                        overflow: "hidden",
-                        flexShrink: 0,
-                        background: "var(--color-gray-100)",
-                      }}
-                    >
-                      {project.coverImage?.thumbnail ||
-                      project.coverImage?.url ? (
-                        <img
-                          src={
-                            project.coverImage.thumbnail ||
-                            project.coverImage?.url
-                          }
-                          alt={project.title}
-                          loading="lazy"
-                          decoding="async"
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <Droplets
-                          style={{
-                            width: "1.75rem",
-                            height: "1.75rem",
-                            color: "var(--color-gray-300)",
-                          }}
-                        />
-                      )}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "0.5rem",
-                          marginBottom: "0.375rem",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <span
-                          className="badge badge-blue"
-                          style={{ textTransform: "capitalize" }}
-                        >
-                          {project.category}
-                        </span>
-                        <span
-                          className={
-                            project.status === "completed"
-                              ? "badge badge-green"
-                              : project.status === "ongoing"
-                                ? "badge badge-blue"
-                                : "badge badge-amber"
-                          }
-                        >
-                          {project.status}
-                        </span>
-                      </div>
-                      <p
-                        style={{
-                          fontWeight: 700,
-                          color: "var(--color-text)",
-                          margin: "0 0 0.125rem",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          fontSize: "1rem",
-                        }}
-                      >
-                        {project.title}
-                      </p>
-                      <p
-                        style={{
-                          color: "var(--color-text-secondary)",
-                          fontSize: "0.8125rem",
-                          margin: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {project.shortDescription || project.description}
-                      </p>
-                    </div>
-                    <div
-                      style={{
-                        textAlign: "right",
-                        flexShrink: 0,
-                        paddingRight: "0.5rem",
-                      }}
-                    >
-                      {project.location && (
-                        <p
-                          style={{
-                            color: "var(--color-text-tertiary)",
-                            fontSize: "0.75rem",
-                            fontWeight: 600,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.25rem",
-                            justifyContent: "flex-end",
-                          }}
-                        >
-                          <MapPin
-                            style={{ width: "0.75rem", height: "0.75rem" }}
-                          />{" "}
-                          {project.location}
-                        </p>
-                      )}
-                      <span
-                        style={{
-                          color: "var(--color-primary-600)",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          marginTop: "0.25rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.125rem",
-                          justifyContent: "flex-end",
-                        }}
-                      >
-                        View{" "}
-                        <ChevronRight
-                          style={{ width: "0.75rem", height: "0.75rem" }}
-                        />
-                      </span>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px,1fr))",
-                gap: "1.5rem",
-              }}
-            >
-              {projects.map((project, i) => (
-                <motion.div
-                  key={project._id}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <ProjectCard project={project} />
-                </motion.div>
-              ))}
-            </div>
-          )}
 
-          {/* Pagination */}
-          {pages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: "0.375rem",
-                marginTop: "4rem",
-                flexWrap: "wrap",
-              }}
-            >
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="btn btn-secondary btn-sm"
-                style={{ opacity: page === 1 ? 0.4 : 1 }}
-              >
-                Previous
-              </button>
-              {Array.from({ length: pages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(i + 1)}
-                  style={{
-                    width: "2.25rem",
-                    height: "2.25rem",
-                    borderRadius: "8px",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    border: "1px solid",
-                    background:
-                      page === i + 1 ? "var(--color-primary-900)" : "#fff",
-                    borderColor:
-                      page === i + 1
-                        ? "var(--color-primary-900)"
-                        : "var(--color-border)",
-                    color: page === i + 1 ? "#fff" : "var(--color-gray-600)",
-                    boxShadow:
-                      page === i + 1 ? "0 2px 8px rgba(30,58,138,0.2)" : "none",
-                    transition: "all 0.15s ease",
+              <label className="flex items-center gap-2 text-[12.5px] text-ink-500">
+                Status
+                <select
+                  value={status}
+                  onChange={(event) => {
+                    setStatus(event.target.value);
+                    setPage(1);
                   }}
+                  className="h-11 rounded-lg border border-ink-200 bg-white px-3 text-[13.5px] text-ink-900 outline-none focus:border-sky-500"
                 >
-                  {i + 1}
+                  {STATUS_FILTERS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="chip chip-lg border-ink-200 bg-white"
+                >
+                  <X size={14} strokeWidth={2} aria-hidden="true" />
+                  Clear filters
                 </button>
-              ))}
-              <button
-                onClick={() => setPage((p) => Math.min(pages, p + 1))}
-                disabled={page === pages}
-                className="btn btn-secondary btn-sm"
-                style={{ opacity: page === pages ? 0.4 : 1 }}
-              >
-                Next
-              </button>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+      {/* ── Results ──────────────────────────────────────────────────────── */}
+      <div className="container-xl py-8 lg:py-10">
+        {isLoading ? (
+          <div className="grid gap-x-6 gap-y-9 sm:grid-cols-2">
+            {Array.from({ length: 4 }, (_, index) => (
+              <div key={index}>
+                <div className="skeleton h-[240px] lg:h-[350px]" />
+                <div className="skeleton mt-3 h-4 w-1/2" />
+                <div className="skeleton mt-2 h-3 w-1/3" />
+              </div>
+            ))}
+          </div>
+        ) : isError ? (
+          <EmptyState
+            title="Projects could not be loaded"
+            body="The portfolio is temporarily unavailable. Try again, or request a quotation and we will send photographs of comparable work."
+            actions={
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="btn btn-secondary btn-md"
+              >
+                Try again
+              </button>
+            }
+          />
+        ) : projects.length === 0 ? (
+          hasFilters ? (
+            <EmptyState
+              title="No projects match these filters"
+              body="Nothing published matches the categories and search you have applied."
+              actions={
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="btn btn-secondary btn-md"
+                >
+                  Clear filters
+                </button>
+              }
+            />
+          ) : (
+            <EmptyState
+              title="No projects are published yet"
+              body="Request a quotation and we will send photographs of comparable work by email or WhatsApp."
+              actions={
+                <>
+                  <Link to="/quotation" className="btn btn-primary btn-md">
+                    Request a free quotation
+                  </Link>
+                  <a
+                    href={COMPANY.whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary btn-md"
+                  >
+                    <MessageCircle size={14} strokeWidth={2} aria-hidden="true" />
+                    WhatsApp the sales desk
+                  </a>
+                </>
+              }
+            />
+          )
+        ) : view === "grid" ? (
+          <div className="grid gap-x-6 gap-y-9 sm:grid-cols-2">
+            {projects.map((project) => (
+              <article key={project._id} className="min-w-0">
+                <Link
+                  to="/projects/$id"
+                  params={{ id: project.slug || project._id }}
+                  className="block bg-ink-100"
+                >
+                  {coverOf(project) ? (
+                    <OptimizedImage
+                      src={coverOf(project)}
+                      alt={project.coverImage?.alt || project.title}
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                      className="photo h-[240px] lg:h-[350px]"
+                    />
+                  ) : (
+                    <div className="grid h-[240px] place-items-center text-ink-300 lg:h-[350px]">
+                      <Droplets size={28} strokeWidth={1.6} aria-hidden="true" />
+                    </div>
+                  )}
+                </Link>
+                <ProjectCaption
+                  project={project}
+                  className="mt-3 border-t border-ink-200"
+                />
+              </article>
+            ))}
+          </div>
+        ) : (
+          <ul>
+            {projects.map((project) => (
+              <li key={project._id}>
+                <Link
+                  to="/projects/$id"
+                  params={{ id: project.slug || project._id }}
+                  className="group flex items-center gap-5 border-b border-ink-200 py-4"
+                >
+                  <div className="h-[76px] w-[120px] shrink-0 overflow-hidden bg-ink-100">
+                    {coverOf(project) && (
+                      <OptimizedImage
+                        src={coverOf(project)}
+                        alt={project.coverImage?.alt || project.title}
+                        sizes="120px"
+                        className="photo"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block font-display text-[16px] font-bold tracking-[-0.012em] text-ink-900 group-hover:text-sky-700">
+                      {project.title}
+                    </span>
+                    <div className="rule-meta mt-1.5">
+                      {project.location && <span>{project.location}</span>}
+                      {project.area && <span>{project.area}</span>}
+                      {project.status && <span className="capitalize">{project.status}</span>}
+                    </div>
+                  </div>
+                  <ArrowUpRight
+                    size={16}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    className="ml-auto shrink-0 text-ink-400 group-hover:text-sky-700"
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <Pagination
+          page={page}
+          pages={pages}
+          total={total}
+          limit={LIMIT}
+          onPage={changePage}
+        />
+      </div>
+
+      <QuotationCta />
     </>
   );
 }

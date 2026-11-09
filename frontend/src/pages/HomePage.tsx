@@ -1,1670 +1,559 @@
-import {
-  AnimatePresence,
-  motion,
-  useScroll,
-  useTransform,
-} from "framer-motion";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Award,
-  Building2,
-  CheckCircle,
-  ChevronDown,
-  Clock,
-  DollarSign,
-  Droplets,
-  Globe,
-  Home,
-  Infinity as InfinityIcon,
-  Leaf,
-  Phone,
-  Play,
-  Shield,
-  Snowflake,
-  Users,
-  Zap,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import {
-  useFeaturedProjects,
-  useProjectStats,
-  useVideos,
-} from "../hooks/useApi";
-
 import { Link } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
+
+import ArrowLink from "../components/public/ArrowLink";
+import ProjectCaption, { projectYear } from "../components/public/ProjectCaption";
+import QuotationCta from "../components/public/QuotationCta";
+import SectionHeading from "../components/public/SectionHeading";
+import VideoShowcase from "../components/public/VideoShowcase";
 import { MetaHead } from "../components/seo/MetaHead";
 import {
   StructuredData,
   organizationSchema,
 } from "../components/seo/StructuredData";
-import ProjectCard from "../components/ui/ProjectCard";
-import ReviewCarousel from "../components/ui/ReviewCarousel";
-import VideoCarousel from "../components/ui/VideoCarousel";
+import OptimizedImage from "../components/ui/Image";
+import { COMPANY, COMPANY_FACTS } from "../data/company";
+import { POOL_PHOTOS } from "../data/poolPhotos";
+import {
+  LEAD_SERVICE_GROUP,
+  SECONDARY_SERVICE_GROUPS,
+} from "../data/services";
+import { useFeaturedProjects, useProjects, useVideos } from "../hooks/useApi";
+import type { Project } from "../types";
+import { projectCategoryLabel } from "../utils/format";
 
-const POOL_CATEGORIES = [
+/** Verified capabilities only. Anything the company cannot substantiate is absent. */
+const CAPABILITIES = [
   {
-    key: "residential",
-    icon: Home,
-    label: "Residential",
-    desc: "Exquisite private sanctuaries engineered for luxury living and timeless elegance.",
+    title: "One contractor for the whole build",
+    body: "Excavation, steel, shell, waterproofing, tiling and coping are carried out in-house.",
   },
   {
-    key: "commercial",
-    icon: Building2,
-    label: "Commercial",
-    desc: "World-class aquatic destinations for premium hospitality and elite institutions.",
+    title: "Filtration sized to the pool",
+    body: "Pump and filter are selected for the pool volume, not supplied as a fixed package.",
   },
   {
-    key: "infinity",
-    icon: InfinityIcon,
-    label: "Infinity",
-    desc: "Architectural masterpieces that blur the line between water and horizon.",
+    title: "Equipment held in Harare",
+    body: "Pumps, filters, heat pumps and chemicals are stocked at the warehouse and installed by our team.",
   },
   {
-    key: "olympic",
-    icon: Droplets,
-    label: "Olympic",
-    desc: "Championship-grade aquatic complexes meeting international competition standards.",
+    title: "Renovation on pools we did not build",
+    body: "Leak detection, re-marbelite and re-tiling are done on existing shells.",
   },
   {
-    key: "indoor",
-    icon: Snowflake,
-    label: "Indoor",
-    desc: "State-of-the-art climate-controlled aquatic suites for year-round excellence.",
+    title: "Working across Zimbabwe",
+    body: "Construction, equipment and maintenance are run from Harare and Bulawayo, with crews travelling to site nationwide.",
   },
   {
-    key: "natural",
-    icon: Leaf,
-    label: "Natural",
-    desc: "Bio-engineered ecosystems combining sustainability with aquatic perfection.",
+    title: "Maintenance contracts",
+    body: "Scheduled cleaning, backwashing, water testing and chemical balancing on a fixed visit cycle.",
   },
 ];
 
-const TRUST_LOGOS = [
-  "Harare",
-  "Borrowdale",
-  "Bulawayo",
-  "Avondale",
-  "Mutare",
-  "Mount Pleasant",
-  "Waterfalls",
-  "Chitungwiza",
-  "Belgravia",
-  "Gweru",
-  "Milton Park",
-  "Kwekwe",
-  "Khumalo",
-  "Sakubva",
-];
-
-const SERVICES = [
+/** Where the work happens, and what is held in stock. */
+const COVERAGE = [
   {
-    icon: Zap,
-    title: "Equipment & Filtration Systems",
-    desc: "State-of-the-art pumps, filters, and automation for optimal water quality and energy efficiency.",
+    label: "Coverage",
+    value: COMPANY.coverage,
+    body: "Residential and commercial sites, from a single pool to lodge and club installations.",
   },
   {
-    icon: Droplets,
-    title: "New Pool Construction",
-    desc: "From foundations to finishing, we deliver premium residential and commercial pool builds.",
+    label: "Base",
+    value: "Harare warehouse and plant",
+    body: "Pumps, filters, heat pumps and chemicals are held in stock for collection or delivery.",
   },
   {
-    icon: Shield,
-    title: "Renovations & Upgrades",
-    desc: "Modernise aging pools with resurfacing, waterproofing, energy upgrades, and modern finishes.",
+    label: "Second team",
+    value: "Bulawayo",
+    body: "Builds and maintenance are run from Bulawayo alongside the Harare operation.",
   },
   {
-    icon: Clock,
-    title: "Maintenance & Support",
-    desc: "Keep your pool performing with ongoing care, inspections, and responsive after-sales support.",
+    label: "Delivery",
+    value: "Quoted with the job",
+    body: "Materials travel with the crew to other centres, with delivery included in the quotation.",
   },
 ];
 
-const PROCESS_STEPS = [
+const FAQS = [
   {
-    n: "01",
-    title: "Consultation",
-    desc: "Complimentary site visit. We assess the space and discuss possibilities.",
+    question: "How long does a new pool take?",
+    answer:
+      "Residential builds run between 14 and 17 weeks on site, depending on size and finish. Commercial pools, indoor halls and infinity edges take longer. The programme is agreed with the quotation.",
   },
   {
-    n: "02",
-    title: "Quotation",
-    desc: "Detailed, transparent breakdown — no hidden costs, ever.",
+    question: "What does a quotation cover?",
+    answer:
+      "Excavation, reinforced shell, waterproofing, tiling, coping, plant and commissioning. Delivery and installation of equipment are quoted with the job, not separately.",
   },
   {
-    n: "03",
-    title: "Build",
-    desc: "Master craftsmen on-site daily. Weekly progress updates.",
+    question: "Can I buy equipment without building a pool?",
+    answer:
+      "Yes. Pumps, filters, heat pumps, salt chlorination, chemicals, covers and ladders are held at the Harare warehouse. Collect at the warehouse or ask for delivery.",
   },
   {
-    n: "04",
-    title: "Handover",
-    desc: "Full training, warranty certificate, and dedicated after-care.",
-  },
-];
-
-const HARDCODED_REVIEWS = [
-  {
-    _id: "1",
-    title: "Exceeded All Expectations",
-    content:
-      "MATERPOOLS AND CONTRUCTION transformed our backyard into a luxury oasis. The attention to detail, professionalism, and timeline adherence were impeccable. Highly recommend!",
-    rating: 5,
-    user: { name: "Sarah Mwangi" },
-    project: { title: "Residential Infinity Pool - Harare" },
+    question: "Do you work outside Harare and Bulawayo?",
+    answer:
+      "Yes. Work is carried out nationwide. Materials travel with the crew and delivery is quoted with the job.",
   },
   {
-    _id: "2",
-    title: "Professional & Reliable",
-    content:
-      "From the initial consultation to the final handover, the team was professional, transparent, and responsive. Our Olympic-grade pool is exceptional.",
-    rating: 5,
-    user: { name: "David Chen" },
-    project: { title: "Commercial Olympic Complex - Bulawayo" },
-  },
-  {
-    _id: "3",
-    title: "Fantastic Renovation Work",
-    content:
-      "We were skeptical about upgrading our old pool, but MATERPOOLS AND CONTRUCTION restored it beautifully. The new filtration system works perfectly.",
-    rating: 5,
-    user: { name: "Jennifer Ndlela" },
-    project: { title: "Pool Renovation - Mount Pleasant" },
-  },
-  {
-    _id: "4",
-    title: "Outstanding Quality & Service",
-    content:
-      "Best investment we've made for our home. The craftsmanship is world-class and the support team is always available when needed.",
-    rating: 5,
-    user: { name: "Marcus Thompson" },
-    project: { title: "Custom Residential Pool - Borrowdale" },
-  },
-  {
-    _id: "5",
-    title: "Professional Excellence",
-    content:
-      "MATERPOOLS AND CONTRUCTION delivered on every promise. The design consultation was thorough, the build was flawless, and we couldn't be happier with the result.",
-    rating: 5,
-    user: { name: "Amanda Konde" },
-    project: { title: "Indoor Climate Pool - Avondale" },
-  },
-  {
-    _id: "6",
-    title: "Truly Exceptional Work",
-    content:
-      "From concept to completion, every step was handled with precision and care. Our pool is the envy of the neighborhood!",
-    rating: 5,
-    user: { name: "Peter Mudzamba" },
-    project: { title: "Natural Bio-Pool - Waterfalls" },
-  },
-  {
-    _id: "7",
-    title: "Seamless Project Delivery",
-    content:
-      "The team managed timelines, subcontractors, and site complexities masterfully. Communication was excellent throughout.",
-    rating: 5,
-    user: { name: "Linda Chiwenga" },
-    project: { title: "Infinity Edge Pool - Borrowdale" },
-  },
-  {
-    _id: "8",
-    title: "Luxury Finish, Outstanding Value",
-    content:
-      "Attention to materials and finishing touches made our pool stand out. Great value for the quality delivered.",
-    rating: 5,
-    user: { name: "Thomas Banda" },
-    project: { title: "Custom Residential Pool - Highlands" },
+    question: "Will you repair a pool you did not build?",
+    answer:
+      "Yes. Leak detection, re-marbelite, re-tiling, new copings and decking are done on existing pools without rebuilding the shell.",
   },
 ];
 
-const WHY_US = [
+const PROCESS = [
   {
-    icon: Award,
-    title: `${new Date().getFullYear() - 2014}+ Years of Excellence`,
-    desc: "Unrivalled expertise crafting 150+ transformative aquatic experiences across Zimbabwe.",
-    color: "blue",
+    step: "01",
+    title: "Initial consultation",
+    body: "Site, budget and how the pool will be used, discussed before anything is drawn.",
   },
   {
-    icon: Shield,
-    title: "Lifetime Assurance",
-    desc: "Comprehensive 10-year warranty backed by our unwavering commitment to excellence.",
-    color: "indigo",
+    step: "02",
+    title: "Site assessment",
+    body: "Access, ground conditions, existing services and where water will discharge.",
   },
   {
-    icon: Droplets,
-    title: "World-Class Materials",
-    desc: "Premium imported Italian tiles, German engineering, and UV-resilient finishes.",
-    color: "blue",
+    step: "03",
+    title: "Design and planning",
+    body: "Shape, depth, finish and plant agreed and drawn before work starts.",
   },
   {
-    icon: Clock,
-    title: "Flawless Execution",
-    desc: "Precision delivery guaranteed — delays incur penalty compensation to you.",
-    color: "green",
+    step: "04",
+    title: "Quotation and approval",
+    body: "Itemised scope and programme, agreed in writing before the crew mobilises.",
   },
   {
-    icon: Globe,
-    title: "Sustainable Luxury",
-    desc: "Eco-engineered solutions: solar heating, adaptive pumps, and water recirculation.",
-    color: "green",
+    step: "05",
+    title: "Construction and installation",
+    body: "Excavation through to shell, waterproofing, tiling and coping.",
   },
   {
-    icon: Users,
-    title: "Expert Master Craftsmen",
-    desc: "Highly skilled teams with decades of combined aquatic construction experience.",
-    color: "blue",
+    step: "06",
+    title: "Testing and handover",
+    body: "Plant commissioned, water balanced and the pool walked through with you.",
   },
   {
-    icon: DollarSign,
-    title: "Transparent Pricing",
-    desc: "Clear, itemised quotations with zero hidden costs or surprise charges.",
-    color: "indigo",
-  },
-  {
-    icon: Zap,
-    title: "Rapid Turnaround",
-    desc: "Efficient project timelines without compromising quality or craftsmanship.",
-    color: "green",
+    step: "07",
+    title: "Ongoing maintenance",
+    body: "Scheduled cleaning, chemical balancing and equipment checks if required.",
   },
 ];
 
-function Counter({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) setStarted(true);
-      },
-      { threshold: 0.5 },
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!started) return;
-    let raf: number;
-    const start = performance.now();
-    const duration = 1800;
-    const animate = (now: number) => {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setCount(Math.round(eased * target));
-      if (t < 1) raf = requestAnimationFrame(animate);
-    };
-    raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
-  }, [started, target]);
-
-  return (
-    <span ref={ref}>
-      {count}
-      {suffix}
-    </span>
-  );
-}
-
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 32 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-60px" },
-  transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as any },
-});
+const coverOf = (project?: Project) =>
+  project?.coverImage?.thumbnail || project?.coverImage?.url || "";
 
 export default function HomePage() {
-  const yearsExp = new Date().getFullYear() - 2014;
-  const { data: featured, isLoading } = useFeaturedProjects();
-  const { data: stats } = useProjectStats();
-  const { data: videosData = [] } = useVideos(true);
-  const reviews = HARDCODED_REVIEWS;
-  const completedProjects = Math.max(stats?.completed ?? 150, 150);
-  const [activeCategory, setActiveCategory] = useState("residential");
-  const [videoOpen, setVideoOpen] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"],
-  });
-  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  // Published records only. Featured projects lead when any are flagged,
+  // otherwise the most recent published ones are used.
+  const { data: featured } = useFeaturedProjects();
+  const { data: recent } = useProjects({ limit: 4 });
+  const { data: videos, isLoading: videosLoading } = useVideos();
 
-  const activeCat = POOL_CATEGORIES.find((c) => c.key === activeCategory)!;
+  const projects: Project[] = featured?.length
+    ? featured
+    : (recent?.projects ?? []);
 
-  const colorCardMap: Record<
-    string,
-    { bg: string; border: string; icon: string }
-  > = {
-    blue: {
-      bg: "var(--color-primary-50)",
-      border: "var(--color-primary-100)",
-      icon: "var(--color-primary-700)",
-    },
-    indigo: {
-      bg: "var(--color-secondary-50)",
-      border: "var(--color-secondary-100)",
-      icon: "var(--color-secondary-600)",
-    },
-    green: {
-      bg: "var(--color-accent-50)",
-      border: "var(--color-accent-100)",
-      icon: "var(--color-accent-600)",
-    },
-  };
+  const hero = projects[0];
+  const galleryLead = projects[1];
+  const galleryMinis = projects.slice(2, 4);
+  const heroCover = coverOf(hero);
+  const heroYear = hero ? projectYear(hero) : undefined;
 
   return (
     <>
       <MetaHead
-        title="MATERPOOLS AND CONTRUCTION | Luxury Swimming Pools — Zimbabwe"
-        description="Zimbabwe's most trusted luxury swimming pool construction company. Custom design, expert construction, lifetime support."
-        ogImage="https://www.masterspools.co.zw/og-image.png"
-        ogType="website"
-        canonical="https://www.masterspools.co.zw/"
+        title="MasterPools | Swimming pool construction across Zimbabwe"
+        description="Pool construction, renovation, maintenance and equipment supply across Zimbabwe. MasterPools has been building pools since 2014, run from Harare and Bulawayo."
+        canonical={`${COMPANY.siteUrl}/`}
       />
       <StructuredData schema={organizationSchema} />
-      <div style={{ overflowX: "hidden" }}>
-        {/* ══ HERO ════════════════════════════════════════════════════════ */}
-        <section
-          ref={heroRef}
-          className="hero-home"
-          style={{
-            position: "relative",
-            minHeight: "100vh",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            overflow: "hidden",
-          }}
-        >
-          {/* Hero background */}
-          <motion.div
-            style={{
-              y: heroY,
-              position: "absolute",
-              inset: 0,
-              background:
-                "linear-gradient(135deg, #172554 0%, #1E3A8A 35%, #1D4ED8 65%, #4338CA 100%)",
-            }}
-          />
 
-          {/* Overlay mesh */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              pointerEvents: "none",
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
-              backgroundSize: "72px 72px",
-            }}
-          />
+      {/* ── Hero: the company statement set on a pool, behind a flat scrim ── */}
+      <section className="relative overflow-hidden">
+        <img
+          src={POOL_PHOTOS.hero.url}
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          style={{ objectPosition: "center 58%" }}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <span className="absolute inset-0 bg-ink-900/64" aria-hidden="true" />
 
-          {/* Animated orbs */}
-          {[
-            { size: 600, x: "5%", y: "10%", color: "rgba(99,102,241,0.15)" },
-            { size: 400, x: "75%", y: "55%", color: "rgba(16,185,129,0.1)" },
-            { size: 300, x: "50%", y: "75%", color: "rgba(255,255,255,0.04)" },
-          ].map((orb, i) => (
-            <motion.div
-              key={i}
-              style={{
-                position: "absolute",
-                width: orb.size,
-                height: orb.size,
-                left: orb.x,
-                top: orb.y,
-                borderRadius: "50%",
-                background: `radial-gradient(circle, ${orb.color}, transparent 70%)`,
-                pointerEvents: "none",
-              }}
-              animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }}
-              transition={{
-                duration: 8 + i * 2,
-                repeat: globalThis.Infinity,
-                ease: "easeInOut",
-                delay: i * 2,
-              }}
+        <div className="container-xl relative py-16 lg:py-24">
+          <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-16">
+            <h1 className="max-w-[860px] font-display text-[34px] font-bold leading-[1.08] tracking-[-0.032em] text-white sm:text-[42px] lg:text-[50px] lg:leading-[1.06]">
+              Building exceptional swimming pools.{" "}
+              <span className="text-sky-300">
+                Creating lasting experiences.
+              </span>
+            </h1>
+
+            <div className="lg:pt-2">
+              <p className="mb-6 max-w-[340px] text-[14.5px] leading-relaxed text-white/80">
+                From custom swimming pool construction to professional installation
+                and ongoing maintenance, MasterPools delivers exceptional aquatic
+                spaces designed to transform your property.
+              </p>
+              <div className="flex flex-col items-start gap-4">
+                <Link to="/quotation" className="btn btn-primary btn-lg">
+                  Request a free quotation
+                </Link>
+                <ArrowLink
+                  to="/projects"
+                  label="Explore our projects"
+                  className="text-white/85 hover:text-white"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Lead project photograph, captioned from the record ────────────── */}
+      {hero && heroCover && (
+        <>
+          <section aria-label={`Photograph of ${hero.title}`} className="w-full">
+            <OptimizedImage
+              src={heroCover}
+              alt={hero.coverImage?.alt || hero.title}
+              priority
+              sizes="100vw"
+              className="photo h-[240px] bg-ink-100 sm:h-[340px] lg:h-[416px]"
             />
-          ))}
+          </section>
 
-          {/* Hero content */}
-          <motion.div
-            style={{
-              opacity: heroOpacity,
-              position: "relative",
-              zIndex: 10,
-              maxWidth: "56rem",
-              margin: "0 auto",
-              padding: "0 1.5rem",
-            }}
-          >
-            <motion.h1
-              {...fadeUp(0.15)}
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontWeight: 800,
-                fontSize: "clamp(2.25rem, 6vw, 4.25rem)",
-                lineHeight: 1.1,
-                letterSpacing: "-0.035em",
-                color: "#fff",
-                marginBottom: "1.5rem",
-              }}
-            >
-              Craft Your{" "}
-              <span
-                style={{
-                  background:
-                    "linear-gradient(135deg, #93C5FD 0%, #C7D2FE 50%, #A5F3FC 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                Perfect Oasis
-              </span>
-              <br />
-              <span style={{ color: "rgba(255,255,255,0.45)" }}>
-                Where Vision Becomes Reality
-              </span>
-            </motion.h1>
-
-            <motion.p
-              {...fadeUp(0.25)}
-              style={{
-                color: "rgba(255,255,255,0.65)",
-                fontSize: "clamp(1rem, 2.5vw, 1.25rem)",
-                maxWidth: "38rem",
-                margin: "0 auto 2.5rem",
-                lineHeight: 1.7,
-              }}
-            >
-              MATERPOOLS AND CONTRUCTION delivers world-class aquatic
-              experiences. From bespoke residential sanctuaries to
-              championship-grade commercial complexes, we engineer perfection.
-            </motion.p>
-
-            <motion.div
-              {...fadeUp(0.35)}
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1rem",
-                marginBottom: "4rem",
-              }}
-            >
-              <Link
-                to="/quotation"
-                className="btn-amber-lg"
-                style={{ boxShadow: "0 8px 24px rgba(245,158,11,0.4)" }}
-              >
-                Get Free Quotation{" "}
-                <ArrowRight style={{ width: "1.125rem", height: "1.125rem" }} />
-              </Link>
-              <button
-                onClick={() => setVideoOpen(true)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.75rem",
-                  padding: "0.875rem 1.75rem",
-                  fontSize: "1rem",
-                  fontWeight: 600,
-                  background: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  borderRadius: "12px",
-                  color: "#fff",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.15)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
-                }
-              >
-                <div
-                  style={{
-                    width: "2rem",
-                    height: "2rem",
-                    borderRadius: "50%",
-                    background: "rgba(255,255,255,0.15)",
-                    border: "1px solid rgba(255,255,255,0.25)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+          <section className="border-b border-ink-200">
+            <div className="container-xl grid gap-5 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-10">
+              <div className="min-w-0">
+                <Link
+                  to="/projects/$id"
+                  params={{ id: hero.slug || hero._id }}
+                  className="font-display text-[17px] font-bold tracking-[-0.012em] text-ink-900 hover:text-sky-700"
                 >
-                  <Play
-                    style={{
-                      width: "0.875rem",
-                      height: "0.875rem",
-                      fill: "#fff",
-                      color: "#fff",
-                      marginLeft: "0.0625rem",
-                    }}
-                  />
+                  {hero.title}
+                </Link>
+                <div className="rule-meta mt-1.5">
+                  {hero.location && <span>{hero.location}</span>}
+                  {heroYear && <span>{heroYear}</span>}
+                  <span>{projectCategoryLabel(hero.category)}</span>
+                  {hero.area && <span>{hero.area}</span>}
                 </div>
-                Watch Our Work
-              </button>
-            </motion.div>
+              </div>
 
-            {/* Stats bar */}
-            <motion.div
-              {...fadeUp(0.45)}
-              style={{
-                display: "grid",
-                gap: "0",
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.15)",
-                borderRadius: "16px",
-                overflow: "hidden",
-                maxWidth: "44rem",
-                margin: "0 auto",
-              }}
-              className="grid-mobile-1-4"
-            >
-              {[
-                {
-                  value: completedProjects,
-                  suffix: "+",
-                  label: "Pools Completed",
-                },
-                {
-                  value: stats?.ongoing ?? 10,
-                  suffix: "",
-                  label: "Active Projects",
-                },
-                { value: yearsExp, suffix: "+", label: "Years Experience" },
-                { value: 98, suffix: "%", label: "Client Satisfaction" },
-              ].map(({ value, suffix, label }, i) => (
+              <div className="flex items-stretch gap-6">
+                {COMPANY_FACTS.map((fact, index) => (
+                  <div key={fact.label} className="flex items-stretch gap-6">
+                    {index > 0 && <span className="w-px bg-ink-200" aria-hidden="true" />}
+                    <div>
+                      <span className="data-label">{fact.label}</span>
+                      <span className="data-value">{fact.value}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* ── Company introduction ─────────────────────────────────────────── */}
+      <section className="py-16 lg:py-20">
+        <div className="container-xl grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,540px)] lg:gap-[72px]">
+          <div>
+            <h2 className="mb-5 max-w-[440px] font-display text-[26px] font-bold leading-[1.14] tracking-[-0.028em] text-ink-900 sm:text-[34px]">
+              A Zimbabwean pool contractor, trading since {COMPANY.established}
+            </h2>
+            <p className="mb-4 max-w-[480px] text-[15px] leading-[1.72] text-ink-600">
+              MasterPools builds new pools, renovates existing ones, supplies
+              filtration and heating equipment, and maintains pools for homes,
+              lodges and clubs.
+            </p>
+            <p className="mb-4 max-w-[480px] text-[15px] leading-[1.72] text-ink-600">
+              Excavation, steel, shell, waterproofing, tiling and coping are done
+              in-house by our own crews, so one contractor carries the job from the
+              first trench to commissioning.
+            </p>
+            <p className="max-w-[480px] text-[15px] leading-[1.72] text-ink-600">
+              The equipment that goes into the plant room is held in our Harare
+              warehouse and installed by the same team that specified it.
+            </p>
+          </div>
+
+          <figure>
+            <OptimizedImage
+              src="/images/pools/site-coping.jpg"
+              alt="Deck coping being laid during swimming pool construction — illustrative photograph, William Adams on Pexels"
+              sizes="(max-width: 1024px) 100vw, 540px"
+              className="photo h-[300px] bg-ink-100 lg:h-[340px]"
+            />
+          </figure>
+        </div>
+      </section>
+
+      {/* ── Services directory ───────────────────────────────────────────── */}
+      <section className="border-y border-sky-100 bg-sky-50 py-16 lg:py-20">
+        <div className="container-xl">
+          <SectionHeading title="Services">
+            <ArrowLink to="/services" label="All services" />
+          </SectionHeading>
+
+          <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] lg:gap-16">
+            <div>
+              <h3 className="mb-3 font-display text-[24px] font-bold tracking-[-0.022em] text-ink-900 sm:text-[26px]">
+                {LEAD_SERVICE_GROUP.name}
+              </h3>
+              <p className="mb-5 max-w-[400px] text-[14.5px] leading-[1.7] text-ink-600">
+                {LEAD_SERVICE_GROUP.intro}
+              </p>
+              <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                {LEAD_SERVICE_GROUP.services.map((service) => (
+                  <li
+                    key={service.slug}
+                    className="border-b border-sky-200 py-2.5 text-[13.5px] text-ink-700"
+                  >
+                    <Link
+                      to="/services/$slug"
+                      params={{ slug: service.slug }}
+                      className="hover:text-sky-700"
+                    >
+                      {service.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <ArrowLink
+                to="/services"
+                label="Scope and site requirements"
+                className="mt-4"
+              />
+
+              <figure className="mt-7">
+                <OptimizedImage
+                  src="/images/pools/plant-room.jpg"
+                  alt="Pump, filter and pipework in a plant room — illustrative photograph, Pavel Danilyuk on Pexels"
+                  sizes="(max-width: 1024px) 100vw, 460px"
+                  className="photo h-[186px] bg-ink-100"
+                />
+              </figure>
+            </div>
+
+            <div>
+              {SECONDARY_SERVICE_GROUPS.map((group) => (
                 <div
-                  key={i}
-                  style={{
-                    padding: "1.25rem 1rem",
-                    textAlign: "center",
-                    borderRight:
-                      i < 3 ? "1px solid rgba(255,255,255,0.1)" : "none",
-                  }}
+                  key={group.slug}
+                  className="border-t border-sky-200 py-5 first:border-t-0 first:pt-0"
                 >
-                  <p
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 800,
-                      fontSize: "1.75rem",
-                      color: "#fff",
-                      margin: 0,
-                      letterSpacing: "-0.025em",
-                    }}
-                  >
-                    <Counter target={value} suffix={suffix} />
+                  <h4 className="mb-1.5 font-display text-[18px] font-bold tracking-[-0.015em] text-ink-900">
+                    {group.name}
+                  </h4>
+                  <p className="mb-2 max-w-[460px] text-[13.5px] leading-[1.65] text-ink-600">
+                    {group.intro}
                   </p>
-                  <p
-                    style={{
-                      color: "rgba(255,255,255,0.45)",
-                      fontSize: "0.6875rem",
-                      marginTop: "0.25rem",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {label}
-                  </p>
+                  <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+                    {group.services.map((service) => (
+                      <li
+                        key={service.slug}
+                        className="py-1.5 text-[13.5px] text-ink-600"
+                      >
+                        <Link
+                          to="/services/$slug"
+                          params={{ slug: service.slug }}
+                          className="hover:text-sky-700"
+                        >
+                          {service.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  {group.slug === "equipment-and-systems" && (
+                    <ArrowLink to="/market" label="Shop equipment" className="mt-2" />
+                  )}
                 </div>
               ))}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-          {/* Scroll cue */}
-          <motion.div
-            style={{
-              position: "absolute",
-              bottom: "2rem",
-              left: "50%",
-              transform: "translateX(-50%)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: globalThis.Infinity }}
-          >
-            <p
-              style={{
-                color: "rgba(255,255,255,0.3)",
-                fontSize: "0.625rem",
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-              }}
-            >
-              Scroll
-            </p>
-            <ChevronDown
-              style={{
-                width: "1rem",
-                height: "1rem",
-                color: "rgba(255,255,255,0.3)",
-              }}
-            />
-          </motion.div>
-        </section>
+      {/* ── Completed projects ───────────────────────────────────────────── */}
+      <section className="py-16 lg:py-20">
+        <div className="container-xl">
+          <SectionHeading title="Completed projects">
+            <ArrowLink to="/projects" label="All projects" />
+          </SectionHeading>
 
-        {/* ══ TRUST MARQUEE ═══════════════════════════════════════════════ */}
-        <section
-          style={{
-            padding: "2.5rem 0",
-            borderTop: "1px solid var(--color-border)",
-            borderBottom: "1px solid var(--color-border)",
-            overflow: "hidden",
-            background: "#fff",
-          }}
-        >
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "0.6875rem",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "var(--color-text-tertiary)",
-              marginBottom: "1.25rem",
-            }}
-          >
-            Trusted Across Zimbabwe's Premier Locations
-          </p>
-          <div className="marquee-track">
-            {[...TRUST_LOGOS, ...TRUST_LOGOS].map((logo, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "3rem",
-                  padding: "0 2.5rem",
-                }}
-              >
-                <span
-                  style={{
-                    color: "var(--color-text-tertiary)",
-                    fontFamily: "var(--font-sans)",
-                    fontWeight: 700,
-                    fontSize: "1rem",
-                    whiteSpace: "nowrap",
-                  }}
+          {galleryLead && coverOf(galleryLead) ? (
+            <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:gap-[52px]">
+              <article>
+                <Link
+                  to="/projects/$id"
+                  params={{ id: galleryLead.slug || galleryLead._id }}
+                  className="block"
                 >
-                  {logo}
-                </span>
-                <div
-                  style={{
-                    width: "1px",
-                    height: "1.25rem",
-                    background: "var(--color-border)",
-                  }}
-                />
+                  <OptimizedImage
+                    src={coverOf(galleryLead)}
+                    alt={galleryLead.coverImage?.alt || galleryLead.title}
+                    sizes="(max-width: 1024px) 100vw, 760px"
+                    className="photo h-[300px] bg-ink-100 lg:h-[404px]"
+                  />
+                </Link>
+                <ProjectCaption project={galleryLead} className="pt-3.5" />
+              </article>
+
+              <div className="flex h-full flex-col">
+                {galleryMinis.map((project, index) => (
+                  <Link
+                    key={project._id}
+                    to="/projects/$id"
+                    params={{ id: project.slug || project._id }}
+                    className={`group flex flex-1 items-center gap-4 py-4 ${
+                      index === 0 ? "pt-0" : "border-t border-ink-200"
+                    }`}
+                  >
+                    <div className="h-[118px] w-[148px] shrink-0 overflow-hidden bg-ink-100">
+                      {coverOf(project) && (
+                        <OptimizedImage
+                          src={coverOf(project)}
+                          alt={project.coverImage?.alt || project.title}
+                          sizes="148px"
+                          className="photo"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="mb-1 font-display text-[15.5px] font-bold tracking-[-0.012em] text-ink-900 group-hover:text-sky-700">
+                        {project.title}
+                      </h3>
+                      <div className="rule-meta">
+                        {project.location && <span>{project.location}</span>}
+                        <span>{projectCategoryLabel(project.category)}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-6 border-t border-ink-200 pt-4">
+              <p className="text-[13.5px] text-ink-600">
+                No completed projects are published yet.
+              </p>
+              <ArrowLink to="/services" label="See services" />
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Published job videos ─────────────────────────────────────────── */}
+      <VideoShowcase videos={videos ?? []} isLoading={videosLoading} />
+
+      {/* ── Verified capabilities ────────────────────────────────────────── */}
+      <section className="border-y border-ink-200 bg-surface py-16 lg:py-20">
+        <div className="container-xl">
+          <SectionHeading title="Why MasterPools" />
+          <div className="grid gap-x-[72px] sm:grid-cols-2">
+            {CAPABILITIES.map((item) => (
+              <div key={item.title} className="border-t border-ink-200 py-5">
+                <h3 className="mb-1.5 font-display text-base font-bold tracking-[-0.012em] text-ink-900">
+                  {item.title}
+                </h3>
+                <p className="max-w-[400px] text-[13.5px] leading-[1.65] text-ink-600">
+                  {item.body}
+                </p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* ══ SERVICES ════════════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "var(--color-bg)" }}>
-          <div className="container-xl">
-            <motion.div
-              {...fadeUp()}
-              style={{ textAlign: "center", marginBottom: "3.5rem" }}
-            >
-              <p className="eyebrow" style={{ marginBottom: "0.75rem" }}>
-                Our Services
-              </p>
-              <h2 className="heading-lg">
-                Everything You Need to{" "}
-                <span className="gradient-text">Build</span>
-              </h2>
-              <p
-                style={{
-                  maxWidth: "42rem",
-                  margin: "1rem auto 0",
-                  color: "var(--color-text-secondary)",
-                  fontSize: "1.05rem",
-                  lineHeight: 1.7,
-                }}
-              >
-                We handle the full pool journey end-to-end, from the first site
-                visit and concept sketches through construction, upgrades, and
-                long-term care.
-              </p>
-            </motion.div>
-
-            <div
-              style={{
-                display: "grid",
-                gap: "1.25rem",
-                maxWidth: "1100px",
-                margin: "0 auto",
-                justifyItems: "center",
-              }}
-              className="grid-mobile-1-3"
-            >
-              {SERVICES.map(({ icon: Icon, title, desc }, i) => (
-                <motion.div
-                  key={title}
-                  {...fadeUp(i * 0.08)}
-                  className="card-hover"
-                  style={{
-                    padding: "1.5rem",
-                    background: "#fff",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "18px",
-                    boxShadow: "var(--shadow-sm)",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "3rem",
-                      height: "3rem",
-                      borderRadius: "14px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: "1.25rem",
-                      background:
-                        "linear-gradient(135deg, var(--color-primary-50), var(--color-secondary-50))",
-                      border: "1px solid var(--color-primary-100)",
-                    }}
-                  >
-                    <Icon
-                      style={{
-                        width: "1.25rem",
-                        height: "1.25rem",
-                        color: "var(--color-primary-800)",
-                      }}
-                    />
-                  </div>
-                  <h3
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 700,
-                      color: "var(--color-text)",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    {title}
-                  </h3>
-                  <p
-                    style={{
-                      color: "var(--color-text-secondary)",
-                      fontSize: "0.925rem",
-                      lineHeight: 1.7,
-                      marginBottom: "1.25rem",
-                    }}
-                  >
-                    {desc}
-                  </p>
-                  <Link
-                    to="/quotation"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.35rem",
-                      color: "var(--color-primary-800)",
-                      fontSize: "0.875rem",
-                      fontWeight: 700,
-                      textDecoration: "none",
-                    }}
-                  >
-                    Request a quote
-                    <ArrowUpRight
-                      style={{ width: "0.875rem", height: "0.875rem" }}
-                    />
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══ POOL CATEGORIES ══════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "var(--color-bg)" }}>
-          <div className="container-xl">
-            <motion.div
-              {...fadeUp()}
-              style={{ textAlign: "center", marginBottom: "3.5rem" }}
-            >
-              <p className="eyebrow" style={{ marginBottom: "0.75rem" }}>
-                What We Build
-              </p>
-              <h2 className="heading-lg">
-                Excellence in Every{" "}
-                <span className="gradient-text">Detail</span>
-              </h2>
-            </motion.div>
-
-            {/* Category pills */}
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                gap: "0.5rem",
-                marginBottom: "2.5rem",
-              }}
-            >
-              {POOL_CATEGORIES.map((cat) => (
-                <motion.button
-                  key={cat.key}
-                  onClick={() => setActiveCategory(cat.key)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    padding: "0.5rem 1.125rem",
-                    borderRadius: "999px",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    transition: "all 0.15s ease",
-                    cursor: "pointer",
-                    border: "1px solid",
-                    background:
-                      activeCategory === cat.key
-                        ? "var(--color-primary-900)"
-                        : "#fff",
-                    borderColor:
-                      activeCategory === cat.key
-                        ? "var(--color-primary-900)"
-                        : "var(--color-border)",
-                    color:
-                      activeCategory === cat.key
-                        ? "#fff"
-                        : "var(--color-gray-600)",
-                    boxShadow:
-                      activeCategory === cat.key
-                        ? "0 4px 14px rgba(30,58,138,0.25)"
-                        : "var(--shadow-xs)",
-                  }}
-                >
-                  {(() => {
-                    const Icon = cat.icon;
-                    return (
-                      <>
-                        <Icon style={{ width: "1rem", height: "1rem" }} />{" "}
-                        {cat.label}
-                      </>
-                    );
-                  })()}
-                </motion.button>
-              ))}
-            </div>
-
-            {/* Active category card */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeCategory}
-                initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ duration: 0.25 }}
-                style={{
-                  padding: "3rem 3.5rem",
-                  textAlign: "center",
-                  maxWidth: "44rem",
-                  margin: "0 auto",
-                  background:
-                    "linear-gradient(135deg, var(--color-primary-50) 0%, #fff 60%)",
-                  border: "1px solid var(--color-primary-100)",
-                  borderRadius: "20px",
-                  boxShadow: "0 4px 24px rgba(30,58,138,0.08)",
-                }}
-              >
-                <motion.p
-                  style={{
-                    fontSize: "3.5rem",
-                    marginBottom: "1.25rem",
-                    lineHeight: 1,
-                  }}
-                  animate={{ rotate: [0, -5, 5, 0], scale: [1, 1.1, 1] }}
-                  transition={{ duration: 0.4 }}
-                >
-                  {(() => {
-                    const Icon = activeCat.icon;
-                    return (
-                      <Icon
-                        style={{
-                          width: "3.5rem",
-                          height: "3.5rem",
-                          color: "var(--color-primary-700)",
-                          margin: "0 auto",
-                        }}
-                      />
-                    );
-                  })()}
-                </motion.p>
-                <h3 className="heading-sm" style={{ marginBottom: "0.75rem" }}>
-                  {activeCat.label} Pools
-                </h3>
-                <p
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    fontSize: "1.0625rem",
-                    lineHeight: 1.7,
-                    marginBottom: "2rem",
-                  }}
-                >
-                  {activeCat.desc}
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "0.75rem",
-                    justifyContent: "center",
-                    marginBottom: "2rem",
-                  }}
-                >
-                  {[
-                    "Custom Design",
-                    "Site Visit Included",
-                    "3D Renders",
-                    "Warranty",
-                  ].map((feat) => (
-                    <span
-                      key={feat}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.375rem",
-                        fontSize: "0.875rem",
-                        color: "var(--color-primary-700)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      <CheckCircle
-                        style={{
-                          width: "0.875rem",
-                          height: "0.875rem",
-                          color: "var(--color-accent-500)",
-                        }}
-                      />{" "}
-                      {feat}
-                    </span>
-                  ))}
-                </div>
-                <Link
-                  to="/quotation"
-                  className="btn btn-primary btn-lg"
-                  style={{
-                    display: "inline-flex",
-                    gap: "0.5rem",
-                    textDecoration: "none",
-                  }}
-                >
-                  Get {activeCat.label} Pool Quote{" "}
-                  <ArrowRight style={{ width: "1rem", height: "1rem" }} />
-                </Link>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </section>
-
-        {/* ══ FEATURED PROJECTS ════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "#fff" }}>
-          <div className="container-xl">
-            <motion.div
-              {...fadeUp()}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-                marginBottom: "3rem",
-              }}
-            >
+      {/* ── Process ──────────────────────────────────────────────────────── */}
+      <section className="py-16 lg:py-20">
+        <div className="container-xl">
+          <SectionHeading
+            title="How we work"
+            intro="Seven stages from the first call to the pool entering service, and the maintenance that follows it."
+          />
+          <div className="grid gap-x-[72px] sm:grid-cols-2">
+            {PROCESS.map((item) => (
               <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  alignItems: "flex-end",
-                  justifyContent: "space-between",
-                  gap: "1rem",
-                }}
+                key={item.step}
+                className="grid grid-cols-[30px_minmax(0,1fr)] gap-3 border-t border-ink-200 py-5"
               >
+                <span className="pt-0.5 font-display text-[13px] font-bold tabular-nums text-sky-700">
+                  {item.step}
+                </span>
                 <div>
-                  <p className="eyebrow" style={{ marginBottom: "0.625rem" }}>
-                    Portfolio
-                  </p>
-                  <h2 className="heading-lg">
-                    Featured <span className="gradient-text">Projects</span>
-                  </h2>
-                </div>
-                <Link
-                  to="/projects"
-                  className="btn btn-outline btn-md"
-                  style={{
-                    display: "inline-flex",
-                    gap: "0.375rem",
-                    textDecoration: "none",
-                    flexShrink: 0,
-                  }}
-                >
-                  View All Projects{" "}
-                  <ArrowUpRight
-                    style={{ width: "0.875rem", height: "0.875rem" }}
-                  />
-                </Link>
-              </div>
-            </motion.div>
-
-            {isLoading ? (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "1.5rem",
-                }}
-                className="grid-mobile-1-3"
-              >
-                {Array.from({ length: 6 }, (_, i) => (
-                  <div
-                    key={i}
-                    className="skeleton"
-                    style={{ height: "18rem" }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "1.5rem",
-                }}
-                className="grid-mobile-1-3"
-              >
-                {(featured ?? []).map((project, i) => (
-                  <motion.div key={project._id} {...fadeUp(i * 0.07)}>
-                    <ProjectCard project={project} />
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {!isLoading && !(featured ?? []).length && (
-              <div
-                className="card"
-                style={{ textAlign: "center", padding: "3rem" }}
-              >
-                <Droplets
-                  style={{
-                    width: "3rem",
-                    height: "3rem",
-                    color: "var(--color-primary-500)",
-                    margin: "0 auto 1rem",
-                  }}
-                />
-                <h3
-                  style={{
-                    fontWeight: 800,
-                    color: "var(--color-text)",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  No featured projects yet
-                </h3>
-                <p
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    maxWidth: "36rem",
-                    margin: "0 auto 1rem",
-                  }}
-                >
-                  We regularly update our featured builds. Explore the full
-                  portfolio to browse completed projects across residential,
-                  commercial, and speciality pools — or request a free quotation
-                  to get your project started.
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "0.75rem",
-                    justifyContent: "center",
-                    marginTop: "1rem",
-                  }}
-                >
-                  <a
-                    href="/projects"
-                    className="btn btn-primary btn-md"
-                    style={{ textDecoration: "none" }}
-                  >
-                    View Portfolio
-                  </a>
-                  <a
-                    href="/quotation"
-                    className="btn btn-secondary btn-md"
-                    style={{ textDecoration: "none" }}
-                  >
-                    Request Quotation
-                  </a>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ══ WHY MASTERPOOLS ══════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "var(--color-bg)" }}>
-          <div className="container-xl">
-            <motion.div
-              {...fadeUp()}
-              style={{ textAlign: "center", marginBottom: "3.5rem" }}
-            >
-              <p className="eyebrow" style={{ marginBottom: "0.75rem" }}>
-                Why Choose Us
-              </p>
-              <h2 className="heading-lg">
-                Built on{" "}
-                <span className="gradient-text">Trust & Excellence</span>
-              </h2>
-            </motion.div>
-
-            <div
-              style={{
-                display: "grid",
-                gap: "1.25rem",
-              }}
-              className="grid-mobile-1-3"
-            >
-              {WHY_US.map(({ icon: Icon, title, desc, color }, i) => {
-                const c = colorCardMap[color] || colorCardMap.blue;
-                return (
-                  <motion.div
-                    key={title}
-                    {...fadeUp(i * 0.07)}
-                    className="card-hover"
-                    style={{ padding: "1.5rem" }}
-                  >
-                    <div
-                      style={{
-                        width: "3rem",
-                        height: "3rem",
-                        borderRadius: "12px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginBottom: "1.25rem",
-                        background: c.bg,
-                        border: `1px solid ${c.border}`,
-                      }}
-                    >
-                      <Icon
-                        style={{
-                          width: "1.25rem",
-                          height: "1.25rem",
-                          color: c.icon,
-                        }}
-                      />
-                    </div>
-                    <h3
-                      style={{
-                        fontFamily: "var(--font-sans)",
-                        fontWeight: 700,
-                        color: "var(--color-text)",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      {title}
-                    </h3>
-                    <p
-                      style={{
-                        color: "var(--color-text-secondary)",
-                        fontSize: "0.875rem",
-                        lineHeight: 1.65,
-                      }}
-                    >
-                      {desc}
-                    </p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* ══ PROCESS ══════════════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "#fff" }}>
-          <div className="container-lg">
-            <motion.div
-              {...fadeUp()}
-              style={{ textAlign: "center", marginBottom: "4rem" }}
-            >
-              <p className="eyebrow" style={{ marginBottom: "0.75rem" }}>
-                Our Process
-              </p>
-              <h2 className="heading-lg">
-                From <span className="gradient-text">Vision to Reality</span>
-              </h2>
-            </motion.div>
-
-            <div
-              style={{
-                display: "grid",
-                gap: "2rem",
-                position: "relative",
-                justifyContent: "center",
-                alignItems: "start",
-                maxWidth: "1000px",
-                margin: "0 auto",
-              }}
-              className="grid-mobile-1-4"
-            >
-              {/* Connector line */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "2.5rem",
-                  left: "5%",
-                  right: "5%",
-                  height: "1px",
-                  background:
-                    "linear-gradient(90deg, transparent, var(--color-primary-100), var(--color-secondary-200), var(--color-primary-100), transparent)",
-                  display: "none",
-                }}
-                className="hidden md:block"
-              />
-
-              {PROCESS_STEPS.map(({ n, title, desc }, i) => (
-                <motion.div
-                  key={n}
-                  {...fadeUp(i * 0.1)}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    textAlign: "center",
-                  }}
-                >
-                  <div
-                    style={{ position: "relative", marginBottom: "1.25rem" }}
-                  >
-                    <div
-                      style={{
-                        width: "5rem",
-                        height: "5rem",
-                        borderRadius: "16px",
-                        background: "var(--color-primary-50)",
-                        border: "1px solid var(--color-primary-100)",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 2px 8px rgba(30,58,138,0.06)",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          color: "var(--color-secondary-500)",
-                          fontSize: "0.6875rem",
-                          fontWeight: 700,
-                          marginBottom: "0.25rem",
-                        }}
-                      >
-                        {n}
-                      </span>
-                      <div
-                        style={{
-                          width: "1.5rem",
-                          height: "2px",
-                          background:
-                            "linear-gradient(90deg, var(--color-primary-300), var(--color-secondary-400))",
-                          borderRadius: "999px",
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <h4
-                    style={{
-                      fontFamily: "var(--font-sans)",
-                      fontWeight: 700,
-                      color: "var(--color-text)",
-                      marginBottom: "0.5rem",
-                      fontSize: "0.9375rem",
-                    }}
-                  >
-                    {title}
-                  </h4>
-                  <p
-                    style={{
-                      color: "var(--color-text-secondary)",
-                      fontSize: "0.8125rem",
-                      lineHeight: 1.65,
-                    }}
-                  >
-                    {desc}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══ REVIEWS ═══════════════════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "#fff" }}>
-          <div className="container-md">
-            <motion.div {...fadeUp()} className="text-center mb-10">
-              <p className="inline-flex items-center rounded-full border border-primary-200 bg-primary-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
-                Testimonials
-              </p>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                Hear From Our Clients
-              </h2>
-              <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                Real feedback from homeowners and businesses who trusted us to
-                build something exceptional.
-              </p>
-            </motion.div>
-
-            <ReviewCarousel reviews={HARDCODED_REVIEWS} autoplayDelay={3500} />
-          </div>
-        </section>
-
-        {/* ══ VIDEOS ══════════════════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "#fff" }}>
-          <div className="container-md">
-            <motion.div {...fadeUp()} className="text-center mb-10">
-              <p className="inline-flex items-center rounded-full border border-secondary-200 bg-secondary-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-700">
-                Videos
-              </p>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
-                See The Work In Motion
-              </h2>
-            </motion.div>
-
-            {videosData.length > 0 ? (
-              <VideoCarousel videos={videosData} />
-            ) : (
-              <div className="rounded-4xl border border-slate-200 bg-slate-950 p-12 text-center">
-                <p className="text-slate-400">
-                  Video gallery coming soon. Check back later!
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* ══ CTA ══════════════════════════════════════════════════════════ */}
-        <section className="section" style={{ background: "#fff" }}>
-          <div className="container-md">
-            <motion.div
-              {...fadeUp()}
-              style={{
-                padding: "4rem 3rem",
-                textAlign: "center",
-                overflow: "hidden",
-                position: "relative",
-                background:
-                  "linear-gradient(135deg, var(--color-primary-950) 0%, var(--color-primary-900) 40%, #4338CA 100%)",
-                borderRadius: "24px",
-                boxShadow: "0 8px 40px rgba(30,58,138,0.25)",
-              }}
-            >
-              {/* Decorative */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: "-5rem",
-                  right: "-5rem",
-                  width: "16rem",
-                  height: "16rem",
-                  borderRadius: "50%",
-                  background: "rgba(99,102,241,0.15)",
-                  pointerEvents: "none",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "-4rem",
-                  left: "-4rem",
-                  width: "12rem",
-                  height: "12rem",
-                  borderRadius: "50%",
-                  background: "rgba(16,185,129,0.1)",
-                  pointerEvents: "none",
-                }}
-              />
-
-              <div style={{ position: "relative", zIndex: 1 }}>
-                <p
-                  className="eyebrow"
-                  style={{
-                    color: "rgba(165,180,252,0.9)",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  Start Your Journey
-                </p>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontWeight: 800,
-                    fontSize: "clamp(1.5rem,4vw,2.25rem)",
-                    color: "#fff",
-                    letterSpacing: "-0.025em",
-                    marginBottom: "1rem",
-                    maxWidth: "36rem",
-                    margin: "0 auto 1rem",
-                  }}
-                >
-                  Transform Your Space Into A Luxury Oasis
-                </h2>
-                <p
-                  style={{
-                    color: "rgba(255,255,255,0.55)",
-                    fontSize: "1.0625rem",
-                    marginBottom: "2rem",
-                    maxWidth: "32rem",
-                    margin: "0 auto 2rem",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  Receive a bespoke quotation within 24 hours. Complimentary
-                  site assessment included. Zero commitment.
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "0.75rem",
-                    marginBottom: "2.5rem",
-                  }}
-                >
-                  {[
-                    "Free Site Consultation",
-                    "Custom 3D Design",
-                    "Transparent Pricing",
-                    "10-Year Warranty",
-                  ].map((feat) => (
-                    <span
-                      key={feat}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.375rem",
-                        fontSize: "0.875rem",
-                        color: "rgba(255,255,255,0.65)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      <CheckCircle
-                        style={{
-                          width: "0.875rem",
-                          height: "0.875rem",
-                          color: "#34D399",
-                        }}
-                      />{" "}
-                      {feat}
-                    </span>
-                  ))}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "1rem",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Link to="/quotation" className="btn-amber-lg">
-                    Book Free Consultation{" "}
-                    <ArrowRight
-                      style={{ width: "1.125rem", height: "1.125rem" }}
-                    />
-                  </Link>
-                  <Link
-                    to="/contact"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.625rem",
-                      padding: "0.875rem 1.75rem",
-                      fontSize: "1rem",
-                      fontWeight: 600,
-                      background: "rgba(255,255,255,0.1)",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      borderRadius: "12px",
-                      color: "#fff",
-                      textDecoration: "none",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <Phone style={{ width: "1rem", height: "1rem" }} /> Call Us
-                    Now
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Video modal */}
-        <AnimatePresence>
-          {videoOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setVideoOpen(false)}
-              style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 50,
-                background: "rgba(0,0,0,0.7)",
-                backdropFilter: "blur(8px)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "1.5rem",
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.85, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  width: "100%",
-                  maxWidth: "50rem",
-                  aspectRatio: "16/9",
-                  background: "#fff",
-                  borderRadius: "20px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 24px 80px rgba(0,0,0,0.3)",
-                }}
-              >
-                <div style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      width: "5rem",
-                      height: "5rem",
-                      borderRadius: "50%",
-                      background: "var(--color-primary-50)",
-                      border: "1px solid var(--color-primary-100)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      margin: "0 auto 1rem",
-                    }}
-                  >
-                    <Play
-                      style={{
-                        width: "2rem",
-                        height: "2rem",
-                        fill: "var(--color-primary-900)",
-                        color: "var(--color-primary-900)",
-                        marginLeft: "0.125rem",
-                      }}
-                    />
-                  </div>
-                  <h3
-                    style={{
-                      fontWeight: 700,
-                      color: "var(--color-text)",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    Watch Our Work
+                  <h3 className="mb-1.5 font-display text-[15.5px] font-bold tracking-[-0.012em] text-ink-900">
+                    {item.title}
                   </h3>
-                  <p
-                    style={{
-                      color: "var(--color-text-secondary)",
-                      fontSize: "0.95rem",
-                      maxWidth: "28rem",
-                      margin: "0 auto",
-                    }}
-                  >
-                    We're preparing a short visual showcase of our recent
-                    projects — high-resolution walkthroughs and construction
-                    time-lapses to demonstrate our process and finish quality.
-                    In the meantime, view our portfolio or book a consultation
-                    to see detailed case studies.
+                  <p className="max-w-[330px] text-[13.5px] leading-[1.6] text-ink-600">
+                    {item.body}
                   </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "0.75rem",
-                      justifyContent: "center",
-                      marginTop: "1rem",
-                    }}
-                  >
-                    <a
-                      href="/projects"
-                      className="btn btn-primary btn-md"
-                      style={{ textDecoration: "none" }}
-                    >
-                      Browse Portfolio
-                    </a>
-                    <a
-                      href="/contact"
-                      className="btn btn-ghost btn-md"
-                      style={{ textDecoration: "none" }}
-                    >
-                      Contact Us
-                    </a>
-                  </div>
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Coverage ─────────────────────────────────────────────────────── */}
+      <section className="border-y border-ink-200 bg-surface py-16 lg:py-20">
+        <div className="container-xl">
+          <SectionHeading
+            title="Where we work"
+            intro="MasterPools works across Zimbabwe. The teams, warehouse and plant are based in Harare and Bulawayo, and materials travel with the crew to site."
+          />
+          <div className="grid gap-x-[72px] sm:grid-cols-2">
+            {COVERAGE.map((item) => (
+              <div key={item.label} className="border-t border-ink-200 py-5">
+                <span className="data-label">{item.label}</span>
+                <p className="mt-1.5 font-display text-[16.5px] font-bold tracking-[-0.012em] text-ink-900">
+                  {item.value}
+                </p>
+                <p className="mt-1.5 max-w-[380px] text-[13.5px] leading-[1.65] text-ink-600">
+                  {item.body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Questions ────────────────────────────────────────────────────── */}
+      <section className="py-16 lg:py-20">
+        <div className="container-xl">
+          <SectionHeading
+            title="Questions"
+            intro="The answers that come up most before a quotation."
+          />
+          <div>
+            {FAQS.map((faq) => (
+              <details
+                key={faq.question}
+                className="group border-t border-ink-200 py-4"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-semibold text-ink-900 [&::-webkit-details-marker]:hidden">
+                  {faq.question}
+                  <ChevronDown
+                    size={16}
+                    aria-hidden="true"
+                    className="shrink-0 text-ink-400 transition-transform group-open:rotate-180"
+                  />
+                </summary>
+                <p className="mt-2 max-w-[640px] text-[13.5px] leading-relaxed text-ink-600">
+                  {faq.answer}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <QuotationCta image={POOL_PHOTOS.closing.url} />
     </>
   );
 }

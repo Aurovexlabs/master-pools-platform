@@ -1,4 +1,5 @@
 import BlogPost from "../models/BlogPost.model.js";
+import { escapeRegex } from "../utils/safe.js";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 9;
@@ -56,13 +57,14 @@ function buildFilter({
   if (publishedOnly) filter.isPublished = true;
   if (category && category !== "all") filter.category = category;
   if (featured === "true") filter.featured = true;
-  if (tag) filter.tags = { $in: [new RegExp(tag, "i")] };
+  if (tag) filter.tags = { $in: [new RegExp(escapeRegex(tag), "i")] };
   if (search) {
+    const term = escapeRegex(search);
     filter.$or = [
-      { title: { $regex: search, $options: "i" } },
-      { excerpt: { $regex: search, $options: "i" } },
-      { content: { $regex: search, $options: "i" } },
-      { tags: { $in: [new RegExp(search, "i")] } },
+      { title: { $regex: term, $options: "i" } },
+      { excerpt: { $regex: term, $options: "i" } },
+      { content: { $regex: term, $options: "i" } },
+      { tags: { $in: [new RegExp(term, "i")] } },
     ];
   }
 

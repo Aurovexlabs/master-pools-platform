@@ -4,7 +4,8 @@ import { useAuthStore } from "../stores/auth.store";
 
 let socketInstance: Socket | null = null;
 let activeSocketToken: string | null = null;
-const env = (import.meta as any)?.env ?? {};
+// `import.meta.env` must be written literally for Vite to substitute it.
+const env = import.meta.env as Record<string, string | undefined>;
 const defaultProductionSocketUrl = "https://master-pools-platform.onrender.com";
 
 const isLocalDevHost =
